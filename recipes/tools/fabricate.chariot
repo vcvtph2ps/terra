@@ -1,0 +1,19 @@
+
+source/fabricate {
+    url: "https://github.com/elysium-os/fabricate.git"
+    revision: "2db876cdadfb1795522409c7791fae4d2687fefa"
+    type: "git"
+}
+
+tool/fabricate {
+    dependencies: [ source/fabricate image/rustc image/cargo image/clang image/libssl-dev image/pkgconf ]
+    build: <sh>
+        cd $SOURCES_DIR/fabricate
+        cargo build \
+            --profile release \
+            --target-dir $BUILD_DIR
+    </sh>
+    install: <sh>
+        install -D release/fabricate $INSTALL_DIR$PREFIX/bin/fabricate
+    </sh>
+}

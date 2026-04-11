@@ -1,0 +1,28 @@
+source/kernel {
+    url: "https://github.com/vcvtph2ps/kernel.git"
+    revision: "main"
+    type: "git"
+}
+
+custom/kernel {
+    dependencies: [ source/kernel tool/fabricate image/nasm image/clang image/clang-tidy image/lld image/llvm image/ninja-build tool/clang-tidy-plugin ]
+    options: [ "arch", "bootloader" ]
+    configure: <sh>
+        fabricate --build-dir=$BUILD_DIR setup \
+            --config=$SOURCES_DIR/kernel/fab.lua \
+            --prefix=/ \
+            -o arch=$OPTION_arch \
+            -o bootloader=$OPTION_bootloader
+    </sh>
+        build: <sh>
+        run-clang-tidy \
+            -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
+            -source-filter "^.*/kernel/.*\\.c\$" \
+            -header-filter "^.*/kernel/.*\\.h\$" \
+            -config-file $SOURCES_DIR/kernel/.clang-tidy \
+            -use-color
+
+        ninja -j$PARALLELISM
+        </sh>
+    install: <sh>fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR</sh>
+}

@@ -1,0 +1,5 @@
+.chariot-overrides
+.chariot-cache
+qemu_err.log
+edk2-ovmf/
+__pycache__/

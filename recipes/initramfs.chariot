@@ -1,0 +1,19 @@
+custom/initramfs {
+    dependencies: [ custom/kernel tool/rdsk ]
+    options: [ "arch" ]
+    always_clean: "yes"
+    build: <sh>
+        mkdir ./root_directory
+        mkdir -p ./root_directory/{dev,tmp,usr}
+        mkdir -p ./root_directory/usr/{bin,lib,include,share}
+        mkdir ./root_directory/dev/console
+
+        # cp -r $SYSROOT_DIR/usr/bin ./root_directory/usr
+        # cp -r $SYSROOT_DIR/usr/lib ./root_directory/usr
+        # cp -r $SYSROOT_DIR/usr/include ./root_directory/usr
+        # cp -r $SYSROOT_DIR/usr/share ./root_directory/usr
+
+        rdsk -c ./root_directory -o initramfs.rdk
+    </sh>
+    install: <sh>install initramfs.rdk $INSTALL_DIR</sh>
+}

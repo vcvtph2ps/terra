@@ -1,0 +1,12 @@
+@import "recipes/**/*.chariot"
+
+@env "CLICOLOR_FORCE" = "1"
+
+@option "arch" = [ "x86_64" ]
+@option "bootloader" = [ "tartarus", "limine" ]
+@option "buildtype" = [ "debug", "release" ]
+
+source/support {
+    type: "local",
+    url: "support"
+}
