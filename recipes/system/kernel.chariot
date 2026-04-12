@@ -1,5 +1,5 @@
 source/kernel {
-    url: "https://github.com/vcvtph2ps/kernel.git"
+    url: "https://github.com/vcvtph2ps/lunar.git"
     revision: "main"
     type: "git"
 }
