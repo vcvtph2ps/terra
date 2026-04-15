@@ -1,7 +1,7 @@
 source/limine {
-    url: "https://codeberg.org/Limine/Limine.git"
+    url: "https://github.com/Limine-Bootloader/Limine.git"
     type: "git"
-    revision: "v10.x-binary"
+    revision: "v11.x-binary"
 }
 
 tool/limine {
