@@ -1,0 +1,53 @@
+diff --git a/support/config.sub b/support/config.sub
+index 4aaae46..c4c8ac6 100644
+--- a/support/config.sub
++++ b/support/config.sub
+@@ -1976,6 +1976,7 @@ case $os in
+ 	| atheos* \
+ 	| auroraux* \
+ 	| aux* \
++	| lunar* \
+ 	| beos* \
+ 	| bitrig* \
+ 	| bme* \
+@@ -2216,6 +2217,8 @@ case $kernel-$os-$obj in
+ 		;;
+ 	managarm-mlibc*- | managarm-kernel*- )
+ 		;;
++	lunar-mlibc*- )
++		;;
+ 	windows*-msvc*-)
+ 		;;
+ 	-dietlibc*- | -llvm*- | -mlibc*- | -musl*- | -newlib*- | -relibc*- \
+diff --git a/support/shobj-conf b/support/shobj-conf
+index c3df351..21b723e 100755
+--- a/support/shobj-conf
++++ b/support/shobj-conf
+@@ -79,6 +79,15 @@ nsk-cc-tandem|nsk-c99-tandem)
+ 	SHOBJ_LDFLAGS='-shared -bglobalized -unres_symbols ignore'
+ 	;;
+ 
++lunar*-*gcc*)
++	SHOBJ_CFLAGS=-fPIC
++	SHOBJ_LD='${CC}'
++	SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
++
++	SHLIB_XLDFLAGS='-Wl,-rpath,$(libdir) -Wl,-soname,`basename $@ $(SHLIB_MINOR)`'
++	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)$(SHLIB_MINOR)'
++	;;
++
+ sunos4*-*gcc*)
+ 	SHOBJ_CFLAGS=-fpic
+ 	SHOBJ_LD=/usr/bin/ld
+diff --git a/examples/loadables/Makefile.in b/examples/loadables/Makefile.in
+--- a/examples/loadables/Makefile.in
++++ b/examples/loadables/Makefile.in
+@@ -69,7 +69,7 @@
+ ALLPROG = print truefalse sleep finfo logname basename dirname fdflags \
+ 	  tty pathchk tee head mkdir rmdir mkfifo mktemp printenv id whoami \
+ 	  uname sync push ln unlink realpath strftime mypid setpgid seq rm \
+-	  accept csv dsv cut stat getconf kv strptime chmod fltexpr
++	  accept csv dsv cut stat getconf kv strptime chmod
+ OTHERPROG = necho hello cat pushd asort
+ 
+ SUBDIRS = perl

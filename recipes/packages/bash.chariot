@@ -1,0 +1,27 @@
+source/bash {
+    url: "https://ftpmirror.gnu.org/gnu/bash/bash-5.3.tar.gz"
+    type: "tar.gz"
+    b2sum: "82d1b54322bbd1e8c2a93380f1b2888a42a1d7186e504f41cee705a0fdd41463d8f20baa1755051e1396192f8ebd089524767d933a9e0b5fb76f2588601539bb"
+    patch: "patches/bash.diff"
+}
+
+package/bash {
+    dependencies: [
+        source/bash
+        image/build-essential
+        collection/mlibc_build
+    ]
+    configure: <sh>
+        bash_cv_void_sighandler=yes \
+        bash_cv_getcwd_malloc=yes \
+        CFLAGS="" $SOURCES_DIR/bash/configure \
+            --host=x86_64-lunar \
+            --prefix=$PREFIX \
+            --without-bash-malloc \
+            --disable-readline \
+            --without-curses \
+            --disable-nls
+    </sh>
+    build: <sh>make</sh>
+    install: <sh>make install DESTDIR=$INSTALL_DIR</sh>
+}

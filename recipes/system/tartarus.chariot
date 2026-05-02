@@ -1,3 +1,15 @@
+source/cc_runtime {
+    url: "https://github.com/osdev0/cc-runtime.git"
+    revision: "dae79833b57a01b9fd3e359ee31def69f5ae899b"
+    type: "git"
+}
+
+source/pico_efi {
+    url: "https://codeberg.org/PicoEFI/PicoEFI.git"
+    revision: "4bd08c13f103de9efd7b215a3e337447f1e2ce37"
+    type: "git"
+}
+
 source/tartarus {
     url: "https://github.com/elysium-os/tartarus-bootloader.git"
     revision: "d1ecb3dd137ecfb08ac15b6b8fc5233a9daefd97"

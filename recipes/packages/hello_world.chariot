@@ -4,7 +4,7 @@ source/hello_world {
 }
 
 package/hello_world {
-    dependencies: [ source/hello_world tool/gcc ]
+    dependencies: [ source/hello_world collection/mlibc_build ]
     build: <sh>
         x86_64-lunar-gcc -o $BUILD_DIR/hello_world $SOURCES_DIR/hello_world/hello.c
     </sh>
