@@ -1,0 +1,14 @@
+source/hello_world {
+    url: "hello_world"
+    type: "local"
+}
+
+package/hello_world {
+    dependencies: [ source/hello_world tool/gcc ]
+    build: <sh>
+        x86_64-lunar-gcc -o $BUILD_DIR/hello_world $SOURCES_DIR/hello_world/hello.c
+    </sh>
+    install: <sh>
+        install -Dm755 $BUILD_DIR/hello_world $INSTALL_DIR/usr/bin/hello
+    </sh>
+}

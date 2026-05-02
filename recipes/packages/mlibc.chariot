@@ -1,0 +1,41 @@
+source/mlibc {
+    url: "https://github.com/vcvtph2ps/lunar-mlibc.git"
+    type: "git"
+    revision: "lunar"
+    dependencies: [ image/meson ]
+}
+
+package/mlibc {
+    dependencies: [
+        %source/mlibc
+        source/support
+        tool/gcc_bootstrap
+        image/g++
+        tool/pkgconf
+        package/mlibc_headers
+        package/freestanding_c_headers
+        package/freestanding_cxx_headers
+        image/meson
+        custom/linux_headers
+    ]
+    configure: <sh>
+        meson setup \
+            --cross-file $SOURCES_DIR/support/lunar.cross \
+            --prefix=$PREFIX \
+            --libdir=lib \
+            --buildtype=debug \
+            -Dno_headers=true \
+            -Ddefault_library=both \
+            -Dbuild_tests=false \
+            -Dposix_option=enabled \
+            -Dlinux_option=enabled \
+            -Dglibc_option=enabled \
+            -Dbsd_option=enabled \
+            -Dlinux_kernel_headers=$CUSTOM_DIR/linux_headers/include \
+            $SOURCES_DIR/mlibc
+    </sh>
+    build: <sh>ninja -j$PARALLELISM</sh>
+    install: <sh>
+        DESTDIR=$INSTALL_DIR ninja install
+    </sh>
+}

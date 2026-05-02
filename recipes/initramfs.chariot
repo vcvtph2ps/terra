@@ -1,5 +1,5 @@
 custom/initramfs {
-    dependencies: [ custom/kernel tool/rdsk ]
+    dependencies: [ custom/kernel tool/rdsk package/hello_world package/mlibc ]
     options: [ "arch" ]
     always_clean: "yes"
     build: <sh>
@@ -8,8 +8,9 @@ custom/initramfs {
         mkdir -p ./root_directory/usr/{bin,lib,include,share}
         mkdir ./root_directory/dev/console
 
-        # cp -r $SYSROOT_DIR/usr/bin ./root_directory/usr
-        # cp -r $SYSROOT_DIR/usr/lib ./root_directory/usr
+        echo "Hello, World!" > ./root_directory/hello.txt
+        cp -r $SYSROOT_DIR/usr/bin ./root_directory/usr
+        cp -r $SYSROOT_DIR/usr/lib ./root_directory/usr
         # cp -r $SYSROOT_DIR/usr/include ./root_directory/usr
         # cp -r $SYSROOT_DIR/usr/share ./root_directory/usr
 

@@ -1,0 +1,12 @@
+source/linux {
+    url: "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.12.8.tar.xz"
+    type: "tar.xz"
+    b2sum: "62a3f435bbe7d24bea361f2545ba50f8b36030a98bd28d0979b86052d8af34dc7a4c27f7ca2890daba5e5bb51f5848e6b21cd5df4dbbd19919867bf67d38790d"
+}
+
+custom/linux_headers {
+    dependencies: [ source/linux image/build-essential image/rsync ]
+    install: <sh>
+        make -C $SOURCES_DIR/linux O=$BUILD_DIR headers_install ARCH=x86_64 INSTALL_HDR_PATH=$INSTALL_DIR
+    </sh>
+}
