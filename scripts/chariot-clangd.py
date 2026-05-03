@@ -54,7 +54,8 @@ args = ["chariot", "--no-lockfile", "--config", project_path / "config.chariot",
 # Prepare context
 args.append("--rw")
 args.extend(["--recipe-context", recipe])
-args.extend(["-d", "tool/clangd"])
+# args.extend(["-d", "tool/clangd"])
+args.extend(["-p", "clangd"])
 args.extend(["-e", "HOME=/root/clangd"])
 args.extend(["-e", "XDG_CACHE_HOME=/root/clangd/cache"])
 
