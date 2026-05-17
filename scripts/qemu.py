@@ -126,16 +126,14 @@ if cfg.arch == "x86_64":
             "-M",
             "q35,accel=kvm",
             "-cpu",
-            "host,lkgs=on,fred=on,invtsc=on,x2apic=on,xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on",
+            "host,lkgs=on,fred=on,invtsc=on,x2apic=on,xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,umip=on",
         ]
     else:
         qemu_cmd += [
             "-M",
             "q35,accel=tcg,smm=off",
             "-cpu",
-            # "qemu64,lkgs=on,fred=on,invtsc=on,x2apic=on,xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on",
-            "Skylake-Client,lkgs=on,fred=on,invtsc=on,x2apic=on,xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on",
-            # "Penryn",
+            "Skylake-Client,lkgs=on,fred=on,invtsc=on,x2apic=on,xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,la57=on,umip=on",
         ]
 
 if cfg.pause:
