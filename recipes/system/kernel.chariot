@@ -14,7 +14,7 @@ custom/kernel {
             -o arch=$OPTION_arch \
             -o bootloader=$OPTION_bootloader
     </sh>
-        build: <sh>
+    build: <sh>
         run-clang-tidy \
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
             -source-filter "^.*/kernel/.*\\.c\$" \
@@ -23,6 +23,6 @@ custom/kernel {
             -use-color
 
         ninja -j$PARALLELISM
-        </sh>
+    </sh>
     install: <sh>fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR</sh>
 }
