@@ -1,0 +1,32 @@
+source/prekernel {
+    url: "https://github.com/vcvtph2ps/lunar.git"
+    revision: "main"
+    type: "git"
+    dependencies: [ custom/kernel ]
+    regenerate: <sh>
+        cp $CUSTOM_DIR/kernel/kernel.o kernel.o
+    </sh>
+}
+
+custom/prekernel {
+    dependencies: [ custom/kernel source/prekernel tool/fabricate image/nasm image/clang image/clang-tidy image/lld image/llvm image/ninja-build tool/clang-tidy-plugin ]
+    options: [ "arch", "bootloader" ]
+    configure: <sh>
+        fabricate --build-dir=$BUILD_DIR setup \
+            --config=$SOURCES_DIR/prekernel/fab.lua \
+            --prefix=/ \
+            -o arch=$OPTION_arch \
+            -o bootloader=$OPTION_bootloader
+    </sh>
+    build: <sh>
+        run-clang-tidy \
+            -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
+            -source-filter "^.*/prekernel/.*\\.c\$" \
+            -header-filter "^.*/prekernel/.*\\.h\$" \
+            -config-file $SOURCES_DIR/prekernel/.clang-tidy \
+            -use-color
+
+        ninja -j$PARALLELISM
+    </sh>
+    install: <sh>fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR</sh>
+}

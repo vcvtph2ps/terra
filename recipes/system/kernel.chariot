@@ -6,14 +6,13 @@ source/kernel {
 
 custom/kernel {
     dependencies: [ source/kernel tool/fabricate image/nasm image/clang image/clang-tidy image/lld image/llvm image/ninja-build tool/clang-tidy-plugin ]
-    options: [ "arch", "bootloader" ]
+    options: [ "arch" ]
     configure: <sh>
         fabricate --build-dir=$BUILD_DIR setup \
             --config=$SOURCES_DIR/kernel/fab.lua \
             --prefix=/ \
             -o arch=$OPTION_arch \
-            -o bootloader=$OPTION_bootloader
-    </sh>
+        </sh>
     build: <sh>
         run-clang-tidy \
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
@@ -24,5 +23,15 @@ custom/kernel {
 
         ninja -j$PARALLELISM
     </sh>
-    install: <sh>fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR</sh>
+    install: <sh>
+        fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR
+        objcopy \
+            --input binary \
+            --redefine-sym _binary__chariot_build_output_kernel_elf_start=_binary_kernel_elf_start \
+            --redefine-sym _binary__chariot_build_output_kernel_elf_end=_binary_kernel_elf_end \
+            --redefine-sym _binary__chariot_build_output_kernel_elf_size=_binary_kernel_elf_size \
+            --output elf64-x86-64 \
+            --binary-architecture i386:x86-64 \
+            $BUILD_DIR/output/kernel.elf $INSTALL_DIR/kernel.o
+    </sh>
 }

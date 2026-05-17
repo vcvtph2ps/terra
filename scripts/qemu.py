@@ -76,7 +76,7 @@ chariot_options = [
 
 if (
     chariot_utils.build(
-        ["source/kernel", "custom/image"], options=chariot_options
+        ["source/kernel", "source/prekernel", "custom/image"], options=chariot_options
     ).returncode
     != 0
 ):

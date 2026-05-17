@@ -1,13 +1,13 @@
 custom/image {
-    dependencies: [ custom/kernel tool/mkimg custom/initramfs package/tartarus package/tartarus_efi tool/limine source/limine source/kernel ]
+    dependencies: [ custom/prekernel source/prekernel source/kernel custom/kernel tool/mkimg custom/initramfs package/tartarus package/tartarus_efi tool/limine source/limine  ]
     options: [ "arch", "bootloader" ]
     build: <sh>
-        ROOT_FILES=${CUSTOM_DIR}/kernel/kernel.elf@/boot/kernel#${CUSTOM_DIR}/initramfs/initramfs.rdk@/boot/initramfs.rdk
+        ROOT_FILES=${CUSTOM_DIR}/prekernel/lunar.elf@/boot/kernel#${CUSTOM_DIR}/initramfs/initramfs.rdk@/boot/initramfs.rdk
 
         if [ "$OPTION_bootloader" == "tartarus" ]; then
-            ROOT_FILES+=#${SOURCES_DIR}/kernel/support/tartarus.cfg
+            ROOT_FILES+=#${SOURCES_DIR}/prekernel/support/tartarus.cfg
         else
-            ROOT_FILES+=#${SOURCES_DIR}/kernel/support/limine.conf
+            ROOT_FILES+=#${SOURCES_DIR}/prekernel/support/limine.conf
         fi
 
         if [ "$OPTION_bootloader" == "tartarus" ]; then
