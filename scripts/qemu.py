@@ -29,6 +29,7 @@ class Config:
     x2apic_only: bool = False
     graphics: bool = False
     bootloader: str = "tartarus"
+    smp: int = 2
 
 
 def parse_args(argv):
@@ -39,6 +40,8 @@ def parse_args(argv):
             cfg = cfg.__class__(**{**cfg.__dict__, "uefi": True})
         elif arg in ("--graphics", "--gfx"):
             cfg = cfg.__class__(**{**cfg.__dict__, "graphics": True})
+        elif arg in ("--up"):
+            cfg = cfg.__class__(**{**cfg.__dict__, "smp": 1})
         elif arg == "--tcg":
             cfg = cfg.__class__(**{**cfg.__dict__, "accel": "tcg"})
         elif arg == "--kvm":
@@ -92,7 +95,7 @@ qemu_cmd = [
     "--no-shutdown",
     "-s",
     "-smp",
-    "cpus=2",
+    f"cpus={cfg.smp}",
     "-drive",
     f"format=raw,file={chariot_utils.path('custom/image', options=chariot_options).strip()}/kernel_{cfg.bootloader}_{'efi' if cfg.uefi else 'bios'}.img",
     "-d",
