@@ -25,13 +25,29 @@ custom/kernel {
     </sh>
     install: <sh>
         fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR
-        objcopy \
-            --input binary \
+
+        case $OPTION_arch in
+            x86_64)
+                OBJCOPY_OUTPUT="elf64-x86-64"
+                OBJCOPY_ARCH="i386:x86-64"
+                ;;
+            riscv64)
+                OBJCOPY_OUTPUT="elf64-littleriscv"
+                OBJCOPY_ARCH="riscv"
+                ;;
+            *)
+                echo "Unknown architecture: $OPTION_arch"
+                exit 1
+                ;;
+        esac
+
+        llvm-objcopy \
+            --input-target binary \
             --redefine-sym _binary__chariot_build_output_kernel_elf_start=_binary_kernel_elf_start \
             --redefine-sym _binary__chariot_build_output_kernel_elf_end=_binary_kernel_elf_end \
             --redefine-sym _binary__chariot_build_output_kernel_elf_size=_binary_kernel_elf_size \
-            --output elf64-x86-64 \
-            --binary-architecture i386:x86-64 \
+            --output-target $OBJCOPY_OUTPUT \
+            --binary-architecture $OBJCOPY_ARCH \
             $BUILD_DIR/output/kernel.elf $INSTALL_DIR/kernel.o
     </sh>
 }

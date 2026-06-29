@@ -1,9 +1,16 @@
-#!/bin/zsh
-# make this use the first one if PREKERNEL=true is set
+#!/bin/bash
+
+: "${ARCH:=x86_64}"
+
 if [[ "$PREKERNEL" == "true" ]]; then
-    KERNEL=$(chariot path custom/prekernel -o arch=x86_64 -o bootloader=$BOOTLOADER --raw)/lunar.elf
+    KERNEL=$(chariot path custom/prekernel \
+        -o arch="$ARCH" \
+        -o bootloader="$BOOTLOADER" \
+        --raw)/lunar.elf
 else
-    KERNEL=$(chariot path custom/kernel -o arch=x86_64 --raw)/kernel.elf
+    KERNEL=$(chariot path custom/kernel \
+        -o arch="$ARCH" \
+        --raw)/kernel.elf
 fi
 
 gdb --ex "file $KERNEL" --ex "set substitute-path ../sources ../"

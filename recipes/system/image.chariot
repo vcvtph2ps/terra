@@ -30,6 +30,7 @@ custom/image {
             ROOT_FILES+=#${SYSROOT_DIR}${PREFIX}/share/tartarus/tartarus.efi@/EFI/BOOT/BOOTX64.EFI
         else
             ROOT_FILES+=#${SOURCES_DIR}/limine/BOOTX64.EFI@/EFI/BOOT/BOOTX64.EFI
+            ROOT_FILES+=#${SOURCES_DIR}/limine/BOOTRISCV64.EFI@/EFI/BOOT/BOOTRISCV64.EFI
         fi
 
         mkimg \
