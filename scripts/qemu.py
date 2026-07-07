@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import enum
 import os
 import platform
 import subprocess
@@ -24,13 +25,19 @@ def download_ovmf():
         sys.exit(1)
 
 
+class xApicState(enum.Enum):
+    NO_X2APIC = 1
+    X2APIC = 2
+    X2APIC_ONLY = 3
+
+
 @dataclass(frozen=True)
 class Config:
     arch: str = "x86_64"
     accel: str = "tcg"
     pause: bool = False
     uefi: bool = False
-    x2apic_only: bool = False
+    apicState: xApicState = xApicState.X2APIC
     graphics: bool = False
     bootloader: str = "tartarus"
     smp: int = 2
@@ -96,8 +103,17 @@ def parse_args() -> Config:
     )
 
     parser.add_argument(
+        "--no-x2apic",
+        dest="apicState",
+        action="store_const",
+        const=xApicState.NO_X2APIC,
+    )
+
+    parser.add_argument(
         "--x2apic-only",
-        action="store_true",
+        dest="apicState",
+        action="store_const",
+        const=xApicState.X2APIC_ONLY,
     )
 
     parser.add_argument(
@@ -147,7 +163,7 @@ def parse_args() -> Config:
         accel=args.accel,
         pause=args.pause,
         uefi=args.uefi,
-        x2apic_only=args.x2apic_only,
+        apicState=args.apicState,
         graphics=args.graphics,
         bootloader=args.bootloader,
         smp=args.cores,
@@ -161,9 +177,7 @@ def parse_args() -> Config:
 
 
 def validate(cfg: Config):
-    if cfg.x2apic_only:
-        if cfg.arch != "x86_64":
-            raise ValueError("x2APIC-only mode is only supported on x86_64")
+    if cfg.apicState == xApicState.X2APIC_ONLY:
         if cfg.accel != "tcg":
             raise ValueError("x2APIC-only mode requires TCG")
 
@@ -245,7 +259,7 @@ if not cfg.graphics:
         "none",
     ]
 
-if cfg.x2apic_only:
+if cfg.apicState == xApicState.X2APIC_ONLY:
     qemu_cmd[0] = f"../qemu/build/qemu-system-{cfg.arch}"
     qemu_cmd += [
         "-global",
@@ -265,20 +279,20 @@ if cfg.arch == "x86_64":
         "-debugcon",
         "stdio",
     ]
-
+    xapic_option = "on" if cfg.apicState != xApicState.NO_X2APIC else "off"
     if cfg.accel == "kvm":
         qemu_cmd += [
             "-M",
             "q35,accel=kvm",
             "-cpu",
-            "host,lkgs=on,fred=on,invtsc=on,x2apic=on,xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,umip=on",
+            f"host,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,umip=on",
         ]
     else:
         qemu_cmd += [
             "-M",
             "q35,accel=tcg,smm=off",
             "-cpu",
-            "Skylake-Client,lkgs=on,fred=on,invtsc=on,x2apic=on,xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,la57=on,umip=on,tsc-frequency=2500000000",
+            f"Skylake-Client,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,la57=on,umip=on,tsc-frequency=2500000000",
         ]
 
 else:
