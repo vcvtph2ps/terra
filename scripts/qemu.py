@@ -42,6 +42,7 @@ class Config:
     bootloader: str = "tartarus"
     smp: int = 2
     acpi: bool = False
+    release: bool = False
 
 
 def normalize(cfg: Config) -> Config:
@@ -156,6 +157,11 @@ def parse_args() -> Config:
         action="store_true",
     )
 
+    parser.add_argument(
+        "--release",
+        action="store_true",
+    )
+
     args = parser.parse_args()
 
     cfg = Config(
@@ -168,6 +174,7 @@ def parse_args() -> Config:
         bootloader=args.bootloader,
         smp=args.cores,
         acpi=args.acpi,
+        release=args.release,
     )
 
     if args.riscv64:
@@ -199,6 +206,7 @@ validate(cfg)
 chariot_options = [
     ("arch", cfg.arch),
     ("bootloader", cfg.bootloader),
+    ("buildtype", "release" if cfg.release else "debug"),
 ]
 
 if (
@@ -258,6 +266,17 @@ if not cfg.graphics:
         "-display",
         "none",
     ]
+else:
+    if cfg.arch == "x86_64":
+        qemu_cmd += [
+            "-vga",
+            "std",
+        ]
+    else:
+        qemu_cmd += [
+            "-device",
+            "ramfb",
+        ]
 
 if cfg.apicState == xApicState.X2APIC_ONLY:
     qemu_cmd[0] = f"../qemu/build/qemu-system-{cfg.arch}"
@@ -281,19 +300,31 @@ if cfg.arch == "x86_64":
     ]
     xapic_option = "on" if cfg.apicState != xApicState.NO_X2APIC else "off"
     if cfg.accel == "kvm":
+        # qemu_cmd += [
+        #     "-M",
+        #     "q35,accel=kvm",
+        #     "-cpu",
+        #     f"host,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,umip=on",
+        # ]
         qemu_cmd += [
             "-M",
             "q35,accel=kvm",
             "-cpu",
-            f"host,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,umip=on",
+            f"Penryn,xsave=on,xsaveopt=on,xsavec=on,xsaves=on",
         ]
     else:
         qemu_cmd += [
             "-M",
             "q35,accel=tcg,smm=off",
             "-cpu",
-            f"Skylake-Client,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,la57=on,umip=on,tsc-frequency=2500000000",
+            f"Penryn,xsave=on,xsaveopt=on,xsavec=on,xsaves=on",
         ]
+        # qemu_cmd += [
+        #     "-M",
+        #     "q35,accel=tcg,smm=off",
+        #     "-cpu",
+        #     f"Skylake-Client,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,la57=on,umip=on,tsc-frequency=2500000000",
+        # ]
 
 else:
     qemu_cmd += [

@@ -6,12 +6,13 @@ source/kernel {
 
 custom/kernel {
     dependencies: [ source/kernel tool/fabricate image/nasm image/clang image/clang-tidy image/lld image/llvm image/ninja-build tool/clang-tidy-plugin ]
-    options: [ "arch" ]
+    options: [ "arch", "buildtype" ]
     configure: <sh>
         fabricate --build-dir=$BUILD_DIR setup \
             --config=$SOURCES_DIR/kernel/fab.lua \
             --prefix=/ \
             -o arch=$OPTION_arch \
+            -o buildtype=$OPTION_buildtype \
         </sh>
     build: <sh>
         run-clang-tidy \
