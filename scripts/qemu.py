@@ -300,32 +300,19 @@ if cfg.arch == "x86_64":
     ]
     xapic_option = "on" if cfg.apicState != xApicState.NO_X2APIC else "off"
     if cfg.accel == "kvm":
-        # qemu_cmd += [
-        #     "-M",
-        #     "q35,accel=kvm",
-        #     "-cpu",
-        #     f"host,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,umip=on",
-        # ]
         qemu_cmd += [
             "-M",
             "q35,accel=kvm",
             "-cpu",
-            f"Penryn,xsave=on,xsaveopt=on,xsavec=on,xsaves=on",
+            f"host,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,umip=on",
         ]
     else:
         qemu_cmd += [
             "-M",
             "q35,accel=tcg,smm=off",
             "-cpu",
-            f"Penryn,xsave=on,xsaveopt=on,xsavec=on,xsaves=on",
+            f"Skylake-Client,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,la57=on,umip=on,tsc-frequency=2500000000",
         ]
-        # qemu_cmd += [
-        #     "-M",
-        #     "q35,accel=tcg,smm=off",
-        #     "-cpu",
-        #     f"Skylake-Client,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,la57=on,umip=on,tsc-frequency=2500000000",
-        # ]
-
 else:
     qemu_cmd += [
         "-serial",
@@ -335,6 +322,15 @@ else:
         "-cpu",
         "rv64",
     ]
+
+qemu_cmd += [
+    "-device",
+    "pxb-pcie,bus=pcie.0,id=pcie.1,bus_nr=128",
+    "-device",
+    "pcie-root-port,bus=pcie.1,id=rp0",
+    "-device",
+    "qemu-xhci,bus=rp0",
+]
 
 if cfg.pause:
     qemu_cmd.append("-S")
