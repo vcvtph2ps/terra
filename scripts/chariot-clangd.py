@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # Python script to run clangd inside of the chariot runtime.
 # This allows clangd to run in the same exact environment as the build.
