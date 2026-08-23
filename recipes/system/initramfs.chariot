@@ -4,11 +4,16 @@ custom/initramfs {
     always_clean: "yes"
     build: <sh>
         mkdir ./root_directory
+
+        mkdir -p ./root_directory/test/meow
+        echo "Hello, World!" > ./root_directory/hello.txt
+        echo "moewwwwww" > ./root_directory/test/mrrp.txt
+        echo "nesting :3" > ./root_directory/test/meow/nesting.txt
+
         # mkdir -p ./root_directory/{dev,tmp,usr}
         # mkdir -p ./root_directory/usr/{bin,lib,include,share}
         # mkdir ./root_directory/dev/console
 
-        # echo "Hello, World!" > ./root_directory/hello.txt
         # cp -r $SYSROOT_DIR/usr/bin ./root_directory/usr
         # cp -r $SYSROOT_DIR/usr/lib ./root_directory/usr
         # cp -r $SYSROOT_DIR/usr/include ./root_directory/usr
