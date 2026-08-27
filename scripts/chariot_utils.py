@@ -33,7 +33,6 @@ def path(recipe: str, options: list[tuple[str, str]] | None = None):
             config_path(),
             *fmt_options(options),
             "path",
-            "-r",
             recipe,
         ],
         capture_output=True,
