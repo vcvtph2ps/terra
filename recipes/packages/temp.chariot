@@ -1,0 +1,19 @@
+source/temp {
+    url: "temp"
+    type: "local"
+}
+
+package/temp {
+    dependencies: [
+        source/temp
+        collection/mlibc_build
+    ]
+
+    build: <sh>x86_64-lunar-gcc $SOURCES_DIR/temp/hello.c -o $BUILD_DIR/hello</sh>
+    install: <sh>
+    	mkdir -p "$INSTALL_DIR$PREFIX/bin"
+        cp $BUILD_DIR/hello "$INSTALL_DIR$PREFIX/bin/hello"
+    </sh>
+}
+
+@collection temp_build = [ tool/binutils tool/gcc package/temp package/temp_headers ]

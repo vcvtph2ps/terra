@@ -295,7 +295,7 @@ if cfg.uefi:
 
 if cfg.arch == "x86_64":
     qemu_cmd += [
-        "-debugcon",
+        "-serial",
         "stdio",
     ]
     xapic_option = "on" if cfg.apicState != xApicState.NO_X2APIC else "off"
