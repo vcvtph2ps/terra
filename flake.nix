@@ -3,7 +3,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
 
-    chariot.url = "github:elysium-os/chariot/4811d772d782ff74387d529c89b67d2d83672369";
+    chariot.url = "github:chariot-build/chariot-graveyard/4811d772d782ff74387d529c89b67d2d83672369";
     chariot.inputs.nixpkgs.follows = "nixpkgs";
   };
 
