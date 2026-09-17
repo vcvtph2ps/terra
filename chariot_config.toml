@@ -1,0 +1,6 @@
+lua_root = "config.lua"
+target_prefix = "/usr"
+
+[rootfs]
+version = "debian/20260901T000000Z"
+hash = "49d8495a42cc63a1297cc0608faeb42ba635dcc4d92daac45f7f0787105d10c6"

@@ -1,0 +1,18 @@
+{
+    "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+    "workspace.library": [".chariot-lsp-support"],
+    "workspace.ignoreDir": [".chariot-cache", ".chariot-rootfs"],
+    "workspace.useGitIgnore": true,
+    "runtime.builtin": {
+        "basic": "enable",
+        "coroutine": "disable",
+        "debug": "disable",
+        "io": "disable",
+        "math": "enable",
+        "os": "disable",
+        "package": "enable",
+        "string": "enable",
+        "table": "enable",
+        "utf8": "disable"
+    }
+}

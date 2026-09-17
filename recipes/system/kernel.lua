@@ -1,20 +1,28 @@
-source/kernel {
-    url: "https://github.com/vcvtph2ps/lunar.git"
-    revision: "main"
-    type: "git"
-}
+local fabricate = require("recipes.system_tools.fabricate")
+local clang_tidy_plugin = require("recipes.system_tools.clang-tidy-plugin")
 
-custom/kernel {
-    dependencies: [ source/kernel tool/fabricate image/nasm image/clang image/clang-tidy image/lld image/llvm image/ninja-build tool/clang-tidy-plugin ]
-    options: [ "arch", "buildtype" ]
-    configure: <sh>
+local kernel_source = Source { Git("https://github.com/vcvtph2ps/lunar.git", "615937f2265699cde081523fe768539b8cafddd2") }
+
+local kernel = Package {
+    name = "kernel",
+    version = "1.0",
+    revision = 1,
+    dependencies = {
+        kernel = kernel_source,
+        fabricate,
+        clang_tidy_plugin,
+
+        "nasm", "clang", "clang-tidy", "lld", "llvm", "ninja-build"
+    },
+    -- options: [ "arch", "buildtype" ]
+    configure = [[
         fabricate --build-dir=$BUILD_DIR setup \
             --config=$SOURCES_DIR/kernel/fab.lua \
             --prefix=/ \
-            -o arch=$OPTION_arch \
-            -o buildtype=$OPTION_buildtype \
-        </sh>
-    build: <sh>
+            -o arch=$ARCH \
+            -o buildtype="debug" \
+    ]],
+    build = [[
         run-clang-tidy \
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
             -source-filter "^.*/kernel/.*\\.c\$" \
@@ -23,11 +31,11 @@ custom/kernel {
             -use-color
 
         ninja -j$PARALLELISM
-    </sh>
-    install: <sh>
+    ]],
+    install = [[
         fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR
 
-        case $OPTION_arch in
+        case $ARCH in
             x86_64)
                 OBJCOPY_OUTPUT="elf64-x86-64"
                 OBJCOPY_ARCH="i386:x86-64"
@@ -37,7 +45,7 @@ custom/kernel {
                 OBJCOPY_ARCH="riscv"
                 ;;
             *)
-                echo "Unknown architecture: $OPTION_arch"
+                echo "Unknown architecture: $ARCH"
                 exit 1
                 ;;
         esac
@@ -50,5 +58,7 @@ custom/kernel {
             --output-target $OBJCOPY_OUTPUT \
             --binary-architecture $OBJCOPY_ARCH \
             $BUILD_DIR/output/kernel.elf $INSTALL_DIR/kernel.o
-    </sh>
+    ]]
 }
+
+return kernel

@@ -3,7 +3,8 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
 
-    chariot.url = "github:chariot-build/chariot-graveyard/4811d772d782ff74387d529c89b67d2d83672369";
+    # chariot.url = "github:vcvtph2ps/chariot";
+    chariot.url = "/persist/user/projects/chariot";
     chariot.inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -14,7 +15,7 @@
       let
         pkgs = import nixpkgs { inherit system; };
         commonPackages = with pkgs; [
-          inputs.chariot.defaultPackage.${system}
+          inputs.chariot.packages.${system}.default
 
           wget # Required by Chariot
           libarchive # Required by Chariot
@@ -22,7 +23,7 @@
           python3 # Used heavily by tools
 
           llvmPackages_22.clang-tools # clang-format & clang-tidy
-
+          tree
           gdb
           qemu_full
         ];
@@ -30,7 +31,7 @@
       {
         formatter = nixpkgs.legacyPackages.${system}.nixfmt-tree;
         devShells.default = pkgs.mkShell {
-          shellHook = "export NIX_SHELL_NAME='lunar'";
+          shellHook = "export NIX_SHELL_NAME='lunar (chariot v3)'";
           nativeBuildInputs = commonPackages;
         };
       }

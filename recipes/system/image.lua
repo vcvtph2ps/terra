@@ -1,19 +1,52 @@
-custom/image {
-    dependencies: [ custom/prekernel source/prekernel source/kernel custom/kernel tool/mkimg image/llvm tool/ksym custom/initramfs package/tartarus package/tartarus_efi tool/limine source/limine  ]
-    options: [ "arch", "bootloader" ]
-    build: <sh>
-        llvm-nm -S $CUSTOM_DIR/kernel/kernel.elf -n > ./kernel_symbols.txt
+local kernel = require("recipes.system.kernel")
+local prekernel = require("recipes.system.prekernel")
+local limine = require("recipes.system.limine")
+local tartarus = require("recipes.system.tartarus")
+local ksym = require("recipes.system_tools.ksym")
+local mkimg = require("recipes.system_tools.mkimg")
+local initramfs = require("recipes.system.initramfs")
+
+local support_source = Source {
+    Local("support")
+}
+
+local image = Package {
+    name = "image",
+    version = "1.0",
+    revision = 1,
+    dependencies = {
+        kernel,
+
+        prekernel = prekernel.source,
+        prekernel.package,
+
+        initramfs,
+
+        mkimg,
+        ksym,
+        tartarus.packages.tartarus,
+        tartarus.packages.tartarus_efi,
+
+        limine = limine.sources.limine,
+        limine.tools.limine,
+
+        support = support_source,
+
+        "llvm"
+    },
+    build = [[
+        llvm-nm -S $SYSROOT_DIR/kernel.elf -n > ./kernel_symbols.txt
         ksym ./kernel_symbols.txt ./kernel.ksym
 
-        ROOT_FILES=${CUSTOM_DIR}/prekernel/lunar.elf@/boot/kernel#${CUSTOM_DIR}/initramfs/initramfs.rdk@/boot/initramfs.rdk#./kernel.ksym@/boot/kernel.ksym
+        ROOT_FILES=${SYSROOT_DIR}/lunar.elf@/boot/kernel#${SYSROOT_DIR}/initramfs.rdk@/boot/initramfs.rdk#./kernel.ksym@/boot/kernel.ksym
 
-        if [ "$OPTION_bootloader" == "tartarus" ]; then
+        if [ "limine" == "tartarus" ]; then
             ROOT_FILES+=#${SOURCES_DIR}/prekernel/support/tartarus.cfg
         else
             ROOT_FILES+=#${SOURCES_DIR}/prekernel/support/limine.conf
         fi
 
-        if [ "$OPTION_bootloader" == "tartarus" ]; then
+        if [ "limine" == "tartarus" ]; then
             mkimg \
                 --protective-mbr \
                 --dest kernel_tartarus_bios.img \
@@ -29,7 +62,7 @@ custom/image {
                 --partition type=fs:gpt-type=5af96cdc-fcb0-44f8-84ae-42ee9dc9b829:fs-type=fat32:fs-size=64:fs-files=${ROOT_FILES}#${SOURCES_DIR}/limine/limine-bios.sys
         fi
 
-        if [ "$OPTION_bootloader" == "tartarus" ]; then
+        if [ "limine" == "tartarus" ]; then
             ROOT_FILES+=#${SYSROOT_DIR}${PREFIX}/share/tartarus/tartarus.efi@/EFI/BOOT/BOOTX64.EFI
         else
             ROOT_FILES+=#${SOURCES_DIR}/limine/BOOTX64.EFI@/EFI/BOOT/BOOTX64.EFI
@@ -38,15 +71,17 @@ custom/image {
 
         mkimg \
             --protective-mbr \
-            --dest kernel_${OPTION_bootloader}_efi.img \
+            --dest kernel_limine_efi.img \
             --partition type=fs:name=ESP:gpt-type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B:fs-type=fat32:fs-size=64:fs-files=${ROOT_FILES}
 
-        if [ "$OPTION_bootloader" == "limine" ]; then
+        if [ "limine" == "limine" ]; then
             limine bios-install kernel_limine_bios.img 1 --force
         fi
-    </sh>
-    install: <sh>
-        install kernel_${OPTION_bootloader}_bios.img $INSTALL_DIR
-        install kernel_${OPTION_bootloader}_efi.img $INSTALL_DIR
-    </sh>
+    ]],
+    install = [[
+        install kernel_limine_bios.img $INSTALL_DIR
+        install kernel_limine_efi.img $INSTALL_DIR
+    ]]
 }
+
+return image
