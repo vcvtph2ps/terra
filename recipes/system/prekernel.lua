@@ -17,18 +17,18 @@ local prekernel = Package {
     dependencies = {
         prekernel = prekernel_source,
         kernel = kernel,
-        clang_tidy_plugin.tools.clang_tidy_plugin,
-        fabricate.tools.fabricate,
+        clang_tidy_plugin,
+        fabricate,
 
         "nasm", "clang", "clang-tidy", "lld", "llvm", "ninja-build", "tree"
     },
-    configure = [[
+    configure = ([[
         fabricate --build-dir=$BUILD_DIR setup \
             --config=$SOURCES_DIR/prekernel/fab.lua \
             --prefix=/ \
-            -o arch=$ARCH \
-            -o bootloader="limine" \
-    ]],
+            -o arch="{arch}" \
+            -o bootloader="{bootloader}" \
+    ]]):gsub("{arch}", chariot.target_arch):gsub("{bootloader}", chariot.options["bootloader"]),
     build = [[
         run-clang-tidy \
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \

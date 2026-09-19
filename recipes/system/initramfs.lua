@@ -9,6 +9,7 @@ local initramfs = Package {
     },
     build = [[
         mkdir ./root_directory
+        mkdir -p ./root_directory/dev
         rdsk -c ./root_directory -o initramfs.rdk
     ]],
     install = [[

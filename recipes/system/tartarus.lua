@@ -38,9 +38,13 @@ local function tartarus_build(name, platform)
     }
 end
 
-local tartarus = tartarus_build("tartarus", "x86_64-bios")
-local tartarus_efi = tartarus_build("tartarus_efi", "x86_64-uefi")
+if chariot.target_arch == "x86_64" then
+    local tartarus_bios = tartarus_build("tartarus", chariot.target_arch .. "-bios")
+    local tartarus_efi = tartarus_build("tartarus_efi", chariot.target_arch .. "-uefi")
 
-return {
-    tartarus = tartarus, tartarus_efi = tartarus_efi,
-}
+    return {
+        tartarus_bios = tartarus_bios, tartarus_efi = tartarus_efi,
+    }
+end
+
+return {}

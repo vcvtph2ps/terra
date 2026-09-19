@@ -1,3 +1,5 @@
+table.print(chariot.options)
+
 require("recipes.system_tools.fabricate")
 require("recipes.system_tools.rdsk")
 require("recipes.system_tools.ksym")

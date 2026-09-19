@@ -15,13 +15,13 @@ local kernel = Package {
         "nasm", "clang", "clang-tidy", "lld", "llvm", "ninja-build"
     },
     -- options: [ "arch", "buildtype" ]
-    configure = [[
+    configure = ([[
         fabricate --build-dir=$BUILD_DIR setup \
             --config=$SOURCES_DIR/kernel/fab.lua \
             --prefix=/ \
-            -o arch=$ARCH \
-            -o buildtype="debug" \
-    ]],
+            -o arch="{arch}" \
+            -o buildtype="{build_type}" \
+    ]]):gsub("{arch}", chariot.target_arch):gsub("{build_type}", chariot.options["build_type"]),
     build = [[
         run-clang-tidy \
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
