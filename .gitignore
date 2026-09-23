@@ -1,6 +1,7 @@
 .chariot-overrides
 .chariot-cache
 .chariot-rootfs
+.chariot.toml
 qemu_err.log
 edk2-ovmf/
 __pycache__/

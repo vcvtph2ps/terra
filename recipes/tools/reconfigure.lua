@@ -1,5 +1,8 @@
-tool/reconfigure {
-    install: <sh>
+local reconfigure = Tool {
+    name = "reconfigure",
+    version = "1.0",
+    revision = 1,
+    install = [[
         mkdir -p $INSTALL_DIR$PREFIX/bin
         cat << EOF > $INSTALL_DIR$PREFIX/bin/reconfigure.sh
         for f in \$(find . -name configure.ac -o -name configure.in -type f | sort); do
@@ -8,5 +11,7 @@ tool/reconfigure {
         done
 EOF
         chmod +x $INSTALL_DIR$PREFIX/bin/reconfigure.sh
-    </sh>
+    ]]
 }
+
+return reconfigure

@@ -1,28 +1,31 @@
-// Pkgconf
+local autotools = require("recipes.tools.autotools")
 
-source/pkgconf {
-    url: "https://github.com/pkgconf/pkgconf/archive/refs/tags/pkgconf-2.4.3.tar.gz"
-    b2sum: "031ae702ff002198c6ea700a4f7f73cf82f19be3827a448929334ebae5f972b0d973e2c43bd12b4a8a8e6d0c187a006fa36d5303b36b2965e1046b26f50a51e7"
-    type: "tar.gz"
-    dependencies: [ tool/autoconf tool/automake tool/libtool ]
-    regenerate: <sh>
+local PKGCONF_VERSION = "2.4.3"
+
+local pkgconf_source = Source {
+    Archive("https://github.com/pkgconf/pkgconf/archive/refs/tags/pkgconf-" .. PKGCONF_VERSION .. ".tar.gz", "cea5b0ed69806b69c1900ce2f6f223a33f15230ad797243634df9fd56e64b156"),
+    dependencies = { autotools.autoconf, autotools.automake, autotools.libtool, "m4", "perl" },
+    prepare = [[
         libtoolize -cfvi && autoreconf -fvi
-    </sh>
+    ]]
 }
 
-tool/pkgconf {
-    dependencies: [
-        source/pkgconf
-        image/gcc-multilib
-        tool/autoconf tool/automake tool/libtool
-    ]
-    configure: <sh>
+local pkgconf = Tool {
+    name = "pkgconf",
+    version = PKGCONF_VERSION,
+    revision = 1,
+    dependencies = {
+        "build-essential", "gcc-multilib",
+        autotools.autoconf, autotools.automake, autotools.libtool,
+        pkgconf = pkgconf_source
+    },
+    configure = [[
         $SOURCES_DIR/pkgconf/configure --prefix=$PREFIX
-    </sh>
-    build: <sh>
+    ]],
+    build = [[
         make -j$PARALLELISM
-    </sh>
-    install: <sh>
+    ]],
+    install = [[
         DESTDIR=$INSTALL_DIR make install-strip
         install -d $INSTALL_DIR$PREFIX/share/pkgconfig/personality.d
 
@@ -34,5 +37,7 @@ tool/pkgconf {
         echo "SystemLibraryPaths: $SYSROOT_DIR/usr/lib" >> $PERSONALITY_FILE
 
         ln -s pkgconf $INSTALL_DIR$PREFIX/bin/x86_64-lunar-pkg-config
-    </sh>
+    ]]
 }
+
+return pkgconf

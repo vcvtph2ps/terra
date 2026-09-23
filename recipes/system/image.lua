@@ -23,9 +23,6 @@ else
 end
 
 local root_files_arg = table.concat(root_files, "#")
-print(root_files_arg)
-
-print(chariot.target_arch)
 local bios_image
 if chariot.target_arch == "x86_64" then
     if chariot.options["bootloader"] == "tartarus" then
@@ -51,7 +48,6 @@ if chariot.target_arch == "x86_64" then
 else
     bios_image = ""
 end
-print(bios_image)
 
 local efi_files = root_files
 
@@ -69,7 +65,6 @@ else
 end
 
 local efi_files_arg = table.concat(efi_files, "#")
-print(efi_files_arg)
 
 local image = Package {
     name = "image",

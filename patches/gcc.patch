@@ -1,6 +1,6 @@
-diff -Naru gcc-14.2.0/fixincludes/mkfixinc.sh gcc-14.2.0-patched/fixincludes/mkfixinc.sh
---- gcc-14.2.0/fixincludes/mkfixinc.sh	2024-08-01 11:17:13.000000000 +0300
-+++ gcc-14.2.0-patched/fixincludes/mkfixinc.sh	2025-03-22 00:37:16.690219702 +0200
+diff -Naru a/fixincludes/mkfixinc.sh b/fixincludes/mkfixinc.sh
+--- a/fixincludes/mkfixinc.sh	2024-08-01 11:17:13.000000000 +0300
++++ b/fixincludes/mkfixinc.sh	2025-03-22 00:37:16.690219702 +0200
 @@ -20,6 +20,7 @@
      powerpcle-*-eabisim* | \
      powerpcle-*-eabi* | \
@@ -9,9 +9,9 @@ diff -Naru gcc-14.2.0/fixincludes/mkfixinc.sh gcc-14.2.0-patched/fixincludes/mkf
      *-musl* )
  	#  IF there is no include fixing,
  	#  THEN create a no-op fixer and exit
-diff -Naru gcc-14.2.0/gcc/config/lunar.h gcc-14.2.0-patched/gcc/config/lunar.h
---- gcc-14.2.0/gcc/config/lunar.h	1970-01-01 02:00:00.000000000 +0200
-+++ gcc-14.2.0-patched/gcc/config/lunar.h	2025-03-22 00:40:03.107441875 +0200
+diff -Naru a/gcc/config/lunar.h b/gcc/config/lunar.h
+--- a/gcc/config/lunar.h	1970-01-01 02:00:00.000000000 +0200
++++ b/gcc/config/lunar.h	2025-03-22 00:40:03.107441875 +0200
 @@ -0,0 +1,32 @@
 +#undef TARGET_LUNAR
 +#define TARGET_LUNAR 1
@@ -45,9 +45,9 @@ diff -Naru gcc-14.2.0/gcc/config/lunar.h gcc-14.2.0-patched/gcc/config/lunar.h
 +        builtin_assert("system=unix");      \
 +        builtin_assert("system=posix");     \
 +    } while(0);
-diff -Naru gcc-14.2.0/gcc/config.gcc gcc-14.2.0-patched/gcc/config.gcc
---- gcc-14.2.0/gcc/config.gcc	2024-08-01 11:17:14.000000000 +0300
-+++ gcc-14.2.0-patched/gcc/config.gcc	2025-03-22 00:44:28.767786985 +0200
+diff -Naru a/gcc/config.gcc b/gcc/config.gcc
+--- a/gcc/config.gcc	2024-08-01 11:17:14.000000000 +0300
++++ b/gcc/config.gcc	2025-03-22 00:44:28.767786985 +0200
 @@ -878,6 +878,15 @@
    rust_target_objs="${rust_target_objs} freebsd-rust.o"
    target_has_targetrustm=yes
@@ -74,9 +74,9 @@ diff -Naru gcc-14.2.0/gcc/config.gcc gcc-14.2.0-patched/gcc/config.gcc
  x86_64-*-fuchsia*)
  	tmake_file="${tmake_file} i386/t-x86_64-elf"
  	tm_file="${tm_file} i386/unix.h i386/att.h elfos.h newlib-stdint.h i386/i386elf.h i386/x86-64.h fuchsia.h"
-diff -Naru gcc-14.2.0/libcpp/Makefile.in gcc-14.2.0-patched/libcpp/Makefile.in
---- gcc-14.2.0/libcpp/Makefile.in	2024-08-01 11:18:42.000000000 +0300
-+++ gcc-14.2.0-patched/libcpp/Makefile.in	2025-03-22 00:52:54.808547354 +0200
+diff -Naru a/libcpp/Makefile.in b/libcpp/Makefile.in
+--- a/libcpp/Makefile.in	2024-08-01 11:18:42.000000000 +0300
++++ b/libcpp/Makefile.in	2025-03-22 00:52:54.808547354 +0200
 @@ -32,10 +32,10 @@
  AUTOHEADER = @AUTOHEADER@
  CATALOGS = $(patsubst %,po/%,@CATALOGS@)
@@ -99,9 +99,9 @@ diff -Naru gcc-14.2.0/libcpp/Makefile.in gcc-14.2.0-patched/libcpp/Makefile.in
  LIBICONV = @LIBICONV@
  LIBINTL = @LIBINTL@
  PACKAGE = @PACKAGE@
-diff -Naru gcc-14.2.0/libgcc/config.host gcc-14.2.0-patched/libgcc/config.host
---- gcc-14.2.0/libgcc/config.host	2024-08-01 11:17:17.000000000 +0300
-+++ gcc-14.2.0-patched/libgcc/config.host	2025-03-22 00:48:15.578679817 +0200
+diff -Naru a/libgcc/config.host b/libgcc/config.host
+--- a/libgcc/config.host	2024-08-01 11:17:17.000000000 +0300
++++ b/libgcc/config.host	2025-03-22 00:48:15.578679817 +0200
 @@ -304,6 +304,11 @@
    tmake_file="$tmake_file t-crtstuff-pic t-libgcc-pic t-eh-dw2-dip t-slibgcc t-slibgcc-fuchsia"
    extra_parts="crtbegin.o crtend.o"
@@ -125,9 +125,9 @@ diff -Naru gcc-14.2.0/libgcc/config.host gcc-14.2.0-patched/libgcc/config.host
  i[34567]86-*-dragonfly*)
  	tmake_file="${tmake_file} i386/t-dragonfly i386/t-crtstuff"
  	md_unwind_header=i386/dragonfly-unwind.h
-diff -Naru gcc-14.2.0/libgcc/configure.ac gcc-14.2.0-patched/libgcc/configure.ac
---- gcc-14.2.0/libgcc/configure.ac	2024-08-01 11:17:17.000000000 +0300
-+++ gcc-14.2.0-patched/libgcc/configure.ac	2025-03-22 00:49:17.647382825 +0200
+diff -Naru a/libgcc/configure.ac b/libgcc/configure.ac
+--- a/libgcc/configure.ac	2024-08-01 11:17:17.000000000 +0300
++++ b/libgcc/configure.ac	2025-03-22 00:49:17.647382825 +0200
 @@ -46,7 +46,7 @@
    libgcc_topdir="${srcdir}/.."
  fi
@@ -137,9 +137,9 @@ diff -Naru gcc-14.2.0/libgcc/configure.ac gcc-14.2.0-patched/libgcc/configure.ac
  AC_CONFIG_HEADER(auto-target.h:config.in)
 
  AC_ARG_ENABLE(shared,
-diff -Naru gcc-14.2.0/libiberty/configure.ac gcc-14.2.0-patched/libiberty/configure.ac
---- gcc-14.2.0/libiberty/configure.ac	2024-08-01 11:17:18.000000000 +0300
-+++ gcc-14.2.0-patched/libiberty/configure.ac	2025-03-22 00:49:47.296168679 +0200
+diff -Naru a/libiberty/configure.ac b/libiberty/configure.ac
+--- a/libiberty/configure.ac	2024-08-01 11:17:18.000000000 +0300
++++ b/libiberty/configure.ac	2025-03-22 00:49:47.296168679 +0200
 @@ -37,7 +37,7 @@
    libiberty_topdir="${srcdir}/.."
  fi
@@ -149,9 +149,9 @@ diff -Naru gcc-14.2.0/libiberty/configure.ac gcc-14.2.0-patched/libiberty/config
 
  dnl Very limited version of automake's enable-maintainer-mode
 
-diff -Naru gcc-14.2.0/libstdc++-v3/crossconfig.m4 gcc-14.2.0-patched/libstdc++-v3/crossconfig.m4
---- gcc-14.2.0/libstdc++-v3/crossconfig.m4	2024-08-01 11:17:18.000000000 +0300
-+++ gcc-14.2.0-patched/libstdc++-v3/crossconfig.m4	2025-03-22 00:51:54.491133176 +0200
+diff -Naru a/libstdc++-v3/crossconfig.m4 b/libstdc++-v3/crossconfig.m4
+--- a/libstdc++-v3/crossconfig.m4	2024-08-01 11:17:18.000000000 +0300
++++ b/libstdc++-v3/crossconfig.m4	2025-03-22 00:51:54.491133176 +0200
 @@ -136,6 +136,18 @@
      AC_CHECK_FUNCS(uselocale)
      ;;

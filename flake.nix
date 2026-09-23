@@ -3,8 +3,8 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
 
-    # chariot.url = "github:vcvtph2ps/chariot";
-    chariot.url = "/persist/user/projects/chariot";
+    chariot.url = "github:chariot-build/chariot";
+    # chariot.url = "/persist/user/projects/chariot";
     chariot.inputs.nixpkgs.follows = "nixpkgs";
   };
 
