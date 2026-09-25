@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790128654,
-        "narHash": "sha256-8aEQW3k2I63NuQeNgQxxXB8kOpn7OIA9KSAA5nJpIu0=",
+        "lastModified": 1790269521,
+        "narHash": "sha256-dzlgOaBVwJXNXg+0u3ur7jwV972KLTeDrZVr+ZWM698=",
         "owner": "chariot-build",
         "repo": "chariot",
-        "rev": "2e87164a1611c1466ed2fbebf9f4b765259b52f9",
+        "rev": "68ba0041af4c5add5aed3a2b18ec93920bcb53c1",
         "type": "github"
       },
       "original": {
@@ -40,11 +40,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1789998861,
-        "narHash": "sha256-62XMQD4WLdMAfdT0/8gJmPH2dKeTw908ryNloAplTr8=",
+        "lastModified": 1790218706,
+        "narHash": "sha256-6e4Na3z008XpdVyOXgfasXIn1aN+z8AXFG+jXdQSyuI=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "1e8bc658fc985ef27ccd66d107d767b32bb7ef98",
+        "rev": "c508844df6c28fa6dabc1b6af70f3ccbd65c5201",
         "type": "github"
       },
       "original": {
