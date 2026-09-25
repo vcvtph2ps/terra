@@ -5,3 +5,4 @@
 qemu_err.log
 edk2-ovmf/
 __pycache__/
+dest/

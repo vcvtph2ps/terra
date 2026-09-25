@@ -1,7 +1,7 @@
 local fabricate = require("recipes.system_tools.fabricate")
 local clang_tidy_plugin = require("recipes.system_tools.clang-tidy-plugin")
 
-local kernel_source = Source { Git("https://github.com/vcvtph2ps/lunar.git", "615937f2265699cde081523fe768539b8cafddd2") }
+local kernel_source = Source { Git("https://github.com/vcvtph2ps/lunar.git", "137801942f2652ea21534fbf333b725340730112") }
 
 local kernel = Package {
     name = "kernel",

@@ -23,3 +23,4 @@ require("recipes.system.image")
 
 require("recipes.packages.mlibc_headers")
 require("recipes.packages.mlibc")
+require("recipes.packages.bash")

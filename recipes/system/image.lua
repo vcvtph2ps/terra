@@ -32,7 +32,7 @@ if chariot.target_arch == "x86_64" then
                 --dest kernel_tartarus_bios.img \
                 --bootsector ${SYSROOT_DIR}${PREFIX}/share/tartarus/x86_64-bios.bin \
                 --partition type=file:name=Tartarus:gpt-type=54524154-5241-5355-424F-4F5450415254:file=${SYSROOT_DIR}${PREFIX}/share/tartarus/tartarus.sys \
-                --partition type=fs:gpt-type=454C5953-4955-4D52-4F4F-545041525458:fs-type=fat32:fs-size=64:fs-files=${ROOT_FILES}
+                --partition type=fs:gpt-type=454C5953-4955-4D52-4F4F-545041525458:fs-type=fat32:fs-size=128:fs-files=${ROOT_FILES}
         ]]
     else
         bios_image = [[
@@ -40,7 +40,7 @@ if chariot.target_arch == "x86_64" then
                 --protective-mbr \
                 --dest kernel_limine_bios.img \
                 --partition type=fs:gpt-type=21686148-6449-6e6f-744e-656564454649:fs-type=fat32:fs-size=1 \
-                --partition type=fs:gpt-type=5af96cdc-fcb0-44f8-84ae-42ee9dc9b829:fs-type=fat32:fs-size=64:fs-files=${ROOT_FILES}#${SOURCES_DIR}/limine/limine-bios.sys
+                --partition type=fs:gpt-type=5af96cdc-fcb0-44f8-84ae-42ee9dc9b829:fs-type=fat32:fs-size=128:fs-files=${ROOT_FILES}#${SOURCES_DIR}/limine/limine-bios.sys
 
             limine bios-install kernel_limine_bios.img 1 --force
         ]]
@@ -103,7 +103,7 @@ local image = Package {
         mkimg \
             --protective-mbr \
             --dest kernel_%s_efi.img \
-            --partition type=fs:name=ESP:gpt-type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B:fs-type=fat32:fs-size=64:fs-files=${EFI_ROOT_FILES}
+            --partition type=fs:name=ESP:gpt-type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B:fs-type=fat32:fs-size=128:fs-files=${EFI_ROOT_FILES}
     ]]):format(root_files_arg, efi_files_arg, bios_image, chariot.options["bootloader"]),
 
     install = ([[
