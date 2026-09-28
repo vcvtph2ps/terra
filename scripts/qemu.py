@@ -204,31 +204,28 @@ cfg = parse_args()
 validate(cfg)
 
 chariot_options = [
-    ("arch", cfg.arch),
     ("bootloader", cfg.bootloader),
-    ("buildtype", "release" if cfg.release else "debug"),
+    ("build_type", "release" if cfg.release else "debug"),
 ]
 
+
 if (
-    chariot_utils.build(
+    chariot_utils.install(
         [
-            "source/kernel",
-            "source/prekernel",
-            "custom/image",
+            "kernel",
+            "image",
         ],
         options=chariot_options,
+        arch=cfg.arch,
+        force=True,
     ).returncode
     != 0
 ):
     print("Build failed")
     sys.exit(1)
 
-drive_path = chariot_utils.path(
-    "custom/image",
-    options=chariot_options,
-).strip()
 
-drive_file = f"{drive_path}/kernel_{cfg.bootloader}_{'efi' if cfg.uefi else 'bios'}.img"
+drive_file = f"{chariot_utils.dest_path()}/kernel_{cfg.bootloader}_{'efi' if cfg.uefi else 'bios'}.img"
 
 qemu_cmd = [
     f"qemu-system-{cfg.arch}",

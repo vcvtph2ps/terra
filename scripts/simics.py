@@ -6,9 +6,9 @@ import sys
 import chariot_utils
 
 if (
-    chariot_utils.build(
-        ["source/kernel", "source/test_app", "source/init_system", "custom/image"],
-        options=["-o", f"arch=x86_64"],
+    chariot_utils.install(
+        ["kernel", "image"],
+        options=[("build_type", "debug"), ("arch", "x86_64")],
     ).returncode
     != 0
 ):
@@ -22,7 +22,7 @@ except OSError as e:
     print(f"Cannot change directory to {simics_dir}: {e}", file=sys.stderr)
     sys.exit(1)
 
-image_dir = chariot_utils.path("custom/image", options=["-o", "arch=x86_64"]).strip()
+image_dir = chariot_utils.path("image", options=[("arch", "x86_64")]).strip()
 iso = os.path.join(image_dir, "output.iso")
 
 stdin_payload = "\n".join(

@@ -12,7 +12,8 @@ from pathlib import Path
 from typing import cast
 
 project_path = Path(dirname(dirname(abspath(__file__))))
-recipe_source_path = Path(os.getcwd())
+source_path = Path(os.getcwd())
+os.chdir(project_path)
 
 
 # Parse arguments
@@ -25,9 +26,10 @@ def parse_kv(s: str) -> tuple[str, str]:
     return k, v
 
 
-parser = argparse.ArgumentParser(prog="chariot-clangd.py")
+parser = argparse.ArgumentParser(prog="chariot_clangd.py")
 
-_ = parser.add_argument("recipe", type=str)
+_ = parser.add_argument("package", type=str)
+_ = parser.add_argument("--arch", type=str)
 _ = parser.add_argument(
     "-m",
     "--source-mapping",
@@ -42,35 +44,55 @@ _ = parser.add_argument(
 
 args = parser.parse_args()
 
-recipe = cast(str, args.recipe)
+package = cast(str, args.package)
 source_mappings = cast(list[tuple[str, str]], args.source_mapping)
 options = cast(list[tuple[str, str]], args.option)
-
-source_mappings = [(recipe_source_path / Path(k), v) for k, v in source_mappings]
+arch = args.arch
+source_mappings = [(source_path / Path(k), v) for k, v in source_mappings]
 
 # Chariot command
-args = ["chariot", "--no-lockfile", "--config", project_path / "config.chariot", "exec"]
+args = [
+    "chariot",
+    "exec",
+    "--cache",
+    project_path / ".chariot-cache",
+    "--rootfs",
+    project_path / ".chariot-rootfs",
+    "--base-config",
+    project_path / "chariot_config.toml",
+    "--stdin",
+]
 
 # Prepare context
-args.append("--rw")
-args.extend(["--recipe-context", recipe])
-# args.extend(["-d", "tool/clangd"])
+args.extend(["--build-env", package])
+args.extend(["--cwd", "/chariot/build"])
+args.extend(["-b", f"/chariot/build={package}"])
+
 args.extend(["-p", "clangd"])
-args.extend(["-e", "HOME=/root/clangd"])
-args.extend(["-e", "XDG_CACHE_HOME=/root/clangd/cache"])
+
+args.extend(["-m", f"{project_path}=/.chariot-clangd-cache:/chariot/clangd"])
+args.extend(["-e", "HOME=/chariot/clangd"])
+args.extend(["-e", "XDG_CACHE_HOME=/chariot/clangd/cache"])
 
 for k, v in source_mappings:
     args.extend(["-m", f"{k}=/chariot/sources/{v}:ro"])
 
 for k, v in options:
-    args.extend(["-o", f"{k}={v}"])
+    args.extend(["--options", f"{k}={v}"])
+
+if arch:
+    args.extend(["--arch", arch])
 
 # Clangd command
 clangd_cmd = "clangd --background-index --clang-tidy"
 if len(source_mappings) > 0:
     clangd_cmd += f" --path-mappings {','.join([f'{k}=$SOURCES_DIR/{v}' for k, v in source_mappings])}"
 
+print(args)
+
 args.append(clangd_cmd)
 
 # Run Clangd
-_ = subprocess.run(args)
+_ = subprocess.run(
+    args,
+)
