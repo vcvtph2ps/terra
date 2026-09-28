@@ -1,15 +1,19 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 int main() {
-  printf("Hello, world!\n");
-  printf("> ");
-  fflush(stdout);
+  int pid = fork();
 
-  char input[100];
+  if (pid == 0) {
+    printf("Hello, child!\n");
+    exit(1);
+  } else {
+    printf("Hello, parent\nchild_pid=%d\n", pid);
+  }
 
-  fgets(input, sizeof(input), stdin);
-
-  printf("\ninput: %s", input);
+  while (1)
+    ;
 
   return 0;
 }

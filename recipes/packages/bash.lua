@@ -1,4 +1,3 @@
-local build_mlibc_toolchain_deps = require("recipes.packages.build-meta")
 local build_meta = require("recipes.packages.build-meta")
 
 local BASH_VERSION = "5.3"
