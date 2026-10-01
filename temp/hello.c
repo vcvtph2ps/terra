@@ -3,17 +3,6 @@
 #include <unistd.h>
 
 int main() {
-  int pid = fork();
-
-  if (pid == 0) {
-    printf("Hello, child!\n");
-    exit(1);
-  } else {
-    printf("Hello, parent\nchild_pid=%d\n", pid);
-  }
-
-  while (1)
-    ;
-
+  printf("Hello, world! :3\n");
   return 0;
 }

@@ -24,6 +24,7 @@ local kernel = Package {
     ]]):gsub("{arch}", chariot.target_arch):gsub("{build_type}", chariot.options["build_type"]),
     build = [[
         run-clang-tidy \
+            -quiet \
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
             -source-filter "^.*/kernel/.*\\.c\$" \
             -header-filter "^.*/kernel/.*\\.h\$" \

@@ -2,13 +2,14 @@ local rdsk = require("recipes.system_tools.rdsk")
 local mlibc = require("recipes.packages.mlibc")
 local bash = require("recipes.packages.bash")
 local temp = require("recipes.packages.temp")
+local meow = require("recipes.packages.meow")
 
 local initramfs = Package {
     name = "initramfs",
     version = "1.0",
     revision = 1,
     dependencies = {
-        rdsk, mlibc, bash, temp
+        rdsk, mlibc, bash, temp, meow
     },
     build = [[
         mkdir ./root_directory
