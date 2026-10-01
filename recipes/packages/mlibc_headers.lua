@@ -11,8 +11,8 @@ local mlibc_headers = Package {
 
         pkgconf,
 
-        support = support_source,
-        mlibc_headers = mlibc_source
+        support_source,
+        mlibc_source
     },
     configure = [[
         meson setup \
@@ -20,7 +20,7 @@ local mlibc_headers = Package {
             --prefix=$PREFIX \
             --buildtype=release \
             -Dheaders_only=true \
-            $SOURCES_DIR/mlibc_headers
+            $SOURCES_DIR/mlibc
     ]],
     build = [[
         ninja -j$PARALLELISM

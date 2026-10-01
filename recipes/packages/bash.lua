@@ -3,6 +3,7 @@ local build_meta = require("recipes.packages.build-meta")
 local BASH_VERSION = "5.3"
 
 local bash_source = Source {
+    name = "bash",
     Archive("https://ftpmirror.gnu.org/gnu/bash/bash-" .. BASH_VERSION .. ".tar.gz", "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba"),
     patches = { "patches/bash.patch" }
 }
@@ -20,7 +21,7 @@ local bash = Package {
 
         "build-essential",
         "make",
-        bash = bash_source
+        bash_source
     },
     configure = [[
         bash_cv_void_sighandler=yes \

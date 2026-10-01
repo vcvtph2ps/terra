@@ -5,7 +5,7 @@ local fabricate = Tool {
     dependencies = {
         "rustc", "cargo", "clang", "libssl-dev", "pkgconf",
 
-        fabricate = Source { Git("https://github.com/elysium-os/fabricate.git", "8c0c4686afb4c6d3a2c97b423ff7303c4cb2d9ce") }
+        fabricate = Source { name = "fabricate", Git("https://github.com/elysium-os/fabricate.git", "8c0c4686afb4c6d3a2c97b423ff7303c4cb2d9ce") }
     },
     build = [[
         cd $SOURCES_DIR/fabricate

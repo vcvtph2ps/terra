@@ -1,8 +1,10 @@
 local freestanding_c_headers_source = Source {
+    name = "freestanding_c_headers",
     Git("https://github.com/osdev0/freestnd-c-hdrs.git", "4039f438fb1dc1064d8e98f70e1cf122f91b763b")
 }
 
 local freestanding_cxx_headers_source = Source {
+    name = "freestanding_cxx_headers",
     Git("https://github.com/osdev0/freestnd-cxx-hdrs.git", "85096df5361a4d7ef2ce46947e555ec248c2858e")
 }
 

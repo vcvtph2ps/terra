@@ -5,10 +5,7 @@ local tartarus = require("recipes.system.tartarus")
 local ksym = require("recipes.system_tools.ksym")
 local mkimg = require("recipes.system_tools.mkimg")
 local initramfs = require("recipes.system.initramfs")
-
-local support_source = Source {
-    Local("support")
-}
+local support_source = require("recipes.sources.support")
 
 local root_files = {
     "${SYSROOT_DIR}/lunar.elf@/boot/kernel",

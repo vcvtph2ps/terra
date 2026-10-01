@@ -1,6 +1,7 @@
 local build_meta = require("recipes.packages.build-meta")
 
 local temp_source = Source {
+    name = "temp",
     Local("temp")
 }
 

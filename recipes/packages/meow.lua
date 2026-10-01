@@ -1,6 +1,7 @@
 local build_meta = require("recipes.packages.build-meta")
 
 local meow_source = Source {
+    name = "meow",
     Local("meow")
 }
 

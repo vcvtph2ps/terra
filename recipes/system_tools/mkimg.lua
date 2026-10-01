@@ -1,4 +1,5 @@
 local mkimg_source = Source {
+    name = "mkimg",
     Git("https://github.com/elysium-os/mkimg.git", "ef9aace290a4c21bba10be324059031ff6136d70")
 }
 

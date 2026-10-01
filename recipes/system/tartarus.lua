@@ -1,9 +1,8 @@
 local fabricate = require("recipes.system_tools.fabricate")
-
-local tartarus_source = Source { Git("https://github.com/elysium-os/tartarus-bootloader.git", "e95c3651f16d2560424c2d0d514aa8467d440053") }
-local pico_efi_source = Source { Git("https://codeberg.org/PicoEFI/PicoEFI.git", "4bd08c13f103de9efd7b215a3e337447f1e2ce37") }
-local cc_runtime_source = Source { Git("https://github.com/osdev0/cc-runtime.git", "dae79833b57a01b9fd3e359ee31def69f5ae899b") }
-local freestanding_c_headers_source = Source { Git("https://github.com/osdev0/freestnd-c-hdrs.git", "4039f438fb1dc1064d8e98f70e1cf122f91b763b") }
+local freestanding_c_headers_source = require("recipes.packages.freestanding_headers").freestanding_c_headers.source
+local tartarus_source = Source { name = "tartarus", Git("https://github.com/elysium-os/tartarus-bootloader.git", "e95c3651f16d2560424c2d0d514aa8467d440053") }
+local pico_efi_source = Source { name = "pico_efi", Git("https://codeberg.org/PicoEFI/PicoEFI.git", "4bd08c13f103de9efd7b215a3e337447f1e2ce37") }
+local cc_runtime_source = Source { name = "cc_runtime", Git("https://github.com/osdev0/cc-runtime.git", "dae79833b57a01b9fd3e359ee31def69f5ae899b") }
 
 local function tartarus_build(name, platform)
     return Package {
@@ -14,10 +13,10 @@ local function tartarus_build(name, platform)
             "nasm", "clang", "lld", "llvm", "ninja-build",
             fabricate,
 
-            tartarus = tartarus_source,
-            pico_efi = pico_efi_source,
-            cc_runtime = cc_runtime_source,
-            freestanding_c_headers = freestanding_c_headers_source
+            tartarus_source,
+            pico_efi_source,
+            cc_runtime_source,
+            freestanding_c_headers_source
         },
         configure = ([[
             fabricate --build-dir=$BUILD_DIR setup \

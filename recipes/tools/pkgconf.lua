@@ -3,6 +3,7 @@ local autotools = require("recipes.tools.autotools")
 local PKGCONF_VERSION = "2.4.3"
 
 local pkgconf_source = Source {
+    name = "pkgconf",
     Archive("https://github.com/pkgconf/pkgconf/archive/refs/tags/pkgconf-" .. PKGCONF_VERSION .. ".tar.gz", "cea5b0ed69806b69c1900ce2f6f223a33f15230ad797243634df9fd56e64b156"),
     dependencies = { autotools.autoconf, autotools.automake, autotools.libtool, "m4", "perl" },
     prepare = [[

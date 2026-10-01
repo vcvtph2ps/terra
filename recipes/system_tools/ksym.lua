@@ -1,4 +1,5 @@
 local ksym_source = Source {
+    name = "ksym",
     Local("tools/ksym")
 }
 

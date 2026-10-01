@@ -3,6 +3,7 @@ local clang_tidy_plugin = require("recipes.system_tools.clang-tidy-plugin")
 local kernel = require("recipes.system.kernel")
 
 local prekernel_source = Source {
+    name = "prekernel",
     Git("https://github.com/vcvtph2ps/theia.git", "058684ea7f2b8839c07ed115ea73cde1ee9f08e1"),
     dependencies = { kernel = kernel },
     prepare = [[

@@ -1,4 +1,5 @@
 local rdsk_source = Source {
+    name = "rdsk",
     Local("tools/rdsk")
 }
 
