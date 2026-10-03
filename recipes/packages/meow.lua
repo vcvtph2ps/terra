@@ -1,14 +1,13 @@
 local build_meta = require("recipes.packages.build-meta")
 
-local meow_source = Source {
-    name = "meow",
-    Local("meow")
-}
-
 local meow = Package {
     name = "meow",
     version = "1.0",
     revision = 1,
+    source = Source {
+        name = "meow",
+        Local("dist-src/packages/meow")
+    },
     dependencies = {
         build_meta.binutils,
         build_meta.gcc,
@@ -17,10 +16,9 @@ local meow = Package {
 
         "build-essential",
         "make",
-        meow_source
     },
     build = [[
-        x86_64-lunar-gcc $SOURCES_DIR/meow/meow.c -o $BUILD_DIR/meow
+        x86_64-lunar-gcc $SOURCE_DIR/meow.c -o $BUILD_DIR/meow
     ]],
     install = [[
     	mkdir -p "$INSTALL_DIR$PREFIX/bin"

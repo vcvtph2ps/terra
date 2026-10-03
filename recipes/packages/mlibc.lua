@@ -9,6 +9,7 @@ local mlibc = Package {
     name = "mlibc",
     version = "1.0",
     revision = 1,
+    source = mlibc_source,
     dependencies = {
         "meson", "git", "cmake",
         mlibc_headers,
@@ -18,7 +19,6 @@ local mlibc = Package {
         pkgconf,
 
         support_source,
-        mlibc_source
     },
     configure = [[
         meson setup \
@@ -30,7 +30,7 @@ local mlibc = Package {
             -Ddefault_library=both \
             -Dbuild_tests=false \
             -Duse_freestnd_hdrs=disabled \
-            $SOURCES_DIR/mlibc
+            $SOURCE_DIR
     ]],
     build = [[
         ninja -j$PARALLELISM

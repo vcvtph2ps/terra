@@ -12,7 +12,7 @@ local bash = Package {
     name = "bash",
     version = BASH_VERSION,
     revision = 1,
-
+    source = bash_source,
     dependencies = {
         build_meta.binutils,
         build_meta.gcc,
@@ -21,13 +21,12 @@ local bash = Package {
 
         "build-essential",
         "make",
-        bash_source
     },
     configure = [[
         bash_cv_void_sighandler=yes \
         bash_cv_getcwd_malloc=yes \
         bash_cv_job_control_missing=missing \
-        CFLAGS="" $SOURCES_DIR/bash/configure \
+        CFLAGS="" $SOURCE_DIR/configure \
             --host=x86_64-lunar \
             --prefix=$PREFIX \
             --without-bash-malloc \

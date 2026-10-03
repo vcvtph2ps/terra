@@ -9,18 +9,18 @@ local function tartarus_build(name, platform)
         name = name,
         version = "1.0",
         revision = 1,
+        source = tartarus_source,
         dependencies = {
             "nasm", "clang", "lld", "llvm", "ninja-build",
             fabricate,
 
-            tartarus_source,
             pico_efi_source,
             cc_runtime_source,
             freestanding_c_headers_source
         },
         configure = ([[
             fabricate --build-dir=$BUILD_DIR setup \
-                --config=$SOURCES_DIR/tartarus/fab.lua \
+                --config=$SOURCE_DIR/fab.lua \
                 --prefix=$PREFIX \
                 --dependency-override=freestanding-c-headers=$SOURCES_DIR/freestanding_c_headers \
                 --dependency-override=cc-runtime=$SOURCES_DIR/cc_runtime \

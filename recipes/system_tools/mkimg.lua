@@ -7,9 +7,10 @@ local mkimg = Tool {
     name = "mkimg",
     version = "1.0",
     revision = 1,
-    dependencies = { "golang", mkimg_source },
+    source = mkimg_source,
+    dependencies = { "golang" },
     configure = [[
-        cp $SOURCES_DIR/mkimg/go.mod $SOURCES_DIR/mkimg/go.sum $SOURCES_DIR/mkimg/main.go .
+        cp $SOURCE_DIR/go.mod $SOURCE_DIR/go.sum $SOURCE_DIR/main.go .
     ]],
     build = [[
         go build

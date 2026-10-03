@@ -9,6 +9,7 @@ local gcc_bootstrap = Tool {
     name = "gcc_bootstrap",
     version = gcc_source.GCC_VERSION,
     revision = 1,
+    source = gcc_source.gcc,
     dependencies = {
         "build-essential",
         "texinfo",
@@ -24,12 +25,10 @@ local gcc_bootstrap = Tool {
         autotools.autoconf_archive,
         autotools.libtool_source,
 
-        mlibc_headers,
-
-        gcc_source.gcc,
+        mlibc_headers
     },
     configure = [[
-        cp -a "$SOURCES_DIR/gcc" "$BUILD_DIR/gcc-src"
+        cp -a "$SOURCE_DIR" "$BUILD_DIR/gcc-src"
 
         CFLAGS="-O2" CXXFLAGS="-O2 -fno-char8_t" $BUILD_DIR/gcc-src/configure \
             --target=x86_64-lunar \

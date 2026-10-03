@@ -10,6 +10,7 @@ local gcc = Tool {
     name = "gcc",
     version = gcc_source.GCC_VERSION,
     revision = 1,
+    source = gcc_source.gcc,
     dependencies = {
         "build-essential",
         "texinfo",
@@ -31,11 +32,9 @@ local gcc = Tool {
 
         mlibc_headers,
         mlibc,
-
-        gcc_source.gcc,
     },
     configure = [[
-        cp -a "$SOURCES_DIR/gcc" "$BUILD_DIR/gcc-src"
+        cp -a "$SOURCE_DIR" "$BUILD_DIR/gcc-src"
 
         CFLAGS="-O2" CXXFLAGS="-O2 -fno-char8_t" $BUILD_DIR/gcc-src/configure \
             --target=x86_64-lunar \

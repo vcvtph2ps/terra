@@ -19,9 +19,10 @@ local binutils = Tool {
     name = "binutils",
     version = BINUTILS_VERSION,
     revision = 1,
-    dependencies = { "build-essential", "texinfo", pkgconf, autotools.autoconf_2_69, autotools.automake, autotools.libtool, binutils_source },
+    source = binutils_source,
+    dependencies = { "build-essential", "texinfo", pkgconf, autotools.autoconf_2_69, autotools.automake, autotools.libtool },
     configure = [[
-        $SOURCES_DIR/binutils/configure \
+        $SOURCE_DIR/configure \
             --with-sysroot=$SYSROOT_DIR \
             --prefix=$PREFIX \
             --target=x86_64-lunar \

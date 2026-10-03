@@ -15,12 +15,12 @@ local autoconf = Tool {
     name = "autoconf",
     version = AUTOCONF_VERSION,
     revision = 1,
+    source = autoconf_source,
     dependencies = {
-        "m4", "make", "gcc", "perl",
-        autoconf_source
+        "m4", "make", "gcc", "perl"
     },
     configure = [[
-        $SOURCES_DIR/autoconf/configure --prefix=$PREFIX
+        $SOURCE_DIR/configure --prefix=$PREFIX
     ]],
     build = [[
         make -j$PARALLELISM
@@ -40,12 +40,12 @@ local autoconf_2_69 = Tool {
     name = "autoconf_2_69",
     version = "2.69",
     revision = 1,
+    source = autoconf_2_69_source,
     dependencies = {
         "m4", "make", "gcc", "perl",
-        autoconf_2_69_source
     },
     configure = [[
-        $SOURCES_DIR/autoconf_2_69/configure --prefix=$PREFIX
+        $SOURCE_DIR/configure --prefix=$PREFIX
     ]],
     build = [[
         make -j$PARALLELISM
@@ -70,14 +70,13 @@ local automake = Tool {
     name = "automake",
     version = AUTOMAKE_VERSION,
     revision = 1,
+    source = automake_source,
     dependencies = {
         "perl", "m4", "make", "gcc",
-        autoconf,
-
-        automake_source
+        autoconf
     },
     configure = [[
-        $SOURCES_DIR/automake/configure --prefix=$PREFIX
+        $SOURCE_DIR/configure --prefix=$PREFIX
     ]],
     build = [[
         make -j$PARALLELISM
@@ -100,14 +99,13 @@ local libtool = Tool {
     name = "libtool",
     version = LIBTOOL_VERSION,
     revision = 1,
+    source = libtool_source,
     dependencies = {
         "help2man", "m4", "perl", "gcc", "make", "libc6-dev",
-        autoconf, automake,
-
-        libtool_source
+        autoconf, automake
     },
     configure = [[
-        cp -a "$SOURCES_DIR/libtool" "$BUILD_DIR/libtool-src"
+        cp -a "$SOURCE_DIR" "$BUILD_DIR/libtool-src"
         $BUILD_DIR/libtool-src/configure --prefix=$PREFIX
     ]],
     build = [[

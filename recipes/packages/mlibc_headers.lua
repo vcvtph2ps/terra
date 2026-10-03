@@ -6,13 +6,13 @@ local mlibc_headers = Package {
     name = "mlibc_headers",
     version = "1.0",
     revision = 1,
+    source = mlibc_source,
     dependencies = {
         "meson", "build-essential",
 
         pkgconf,
 
         support_source,
-        mlibc_source
     },
     configure = [[
         meson setup \
@@ -20,7 +20,7 @@ local mlibc_headers = Package {
             --prefix=$PREFIX \
             --buildtype=release \
             -Dheaders_only=true \
-            $SOURCES_DIR/mlibc
+            $SOURCE_DIR
     ]],
     build = [[
         ninja -j$PARALLELISM

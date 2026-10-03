@@ -7,17 +7,16 @@ local kernel = Package {
     name = "kernel",
     version = "1.0",
     revision = 1,
+    source = kernel_source,
     dependencies = {
-        kernel_source,
         fabricate,
         clang_tidy_plugin,
 
         "nasm", "clang", "clang-tidy", "lld", "llvm", "ninja-build"
     },
-    -- options: [ "arch", "buildtype" ]
     configure = ([[
         fabricate --build-dir=$BUILD_DIR setup \
-            --config=$SOURCES_DIR/kernel/fab.lua \
+            --config=$SOURCE_DIR/fab.lua \
             --prefix=/ \
             -o arch="{arch}" \
             -o buildtype="{build_type}" \
@@ -28,7 +27,7 @@ local kernel = Package {
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
             -source-filter "^.*/kernel/.*\\.c\$" \
             -header-filter "^.*/kernel/.*\\.h\$" \
-            -config-file $SOURCES_DIR/kernel/.clang-tidy \
+            -config-file $SOURCE_DIR/.clang-tidy \
             -use-color
 
         ninja -j$PARALLELISM

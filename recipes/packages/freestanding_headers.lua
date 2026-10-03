@@ -12,8 +12,8 @@ local freestanding_c_headers = Package {
     name = "freestanding_c_headers",
     version = "1.0",
     revision = 1,
-    dependencies = { freestanding_c_headers_source },
-    build = [[ cp -rpf $SOURCES_DIR/freestanding_c_headers/* . ]],
+    source = freestanding_c_headers_source,
+    build = [[ cp -rpf $SOURCE_DIR/* . ]],
     install = [[ DESTDIR=$INSTALL_DIR PREFIX=$PREFIX make install ]]
 }
 
@@ -21,8 +21,8 @@ local freestanding_cxx_headers = Package {
     name = "freestanding_cxx_headers",
     version = "1.0",
     revision = 1,
-    dependencies = { freestanding_cxx_headers_source },
-    build = [[ cp -rpf $SOURCES_DIR/freestanding_cxx_headers/* . ]],
+    source = freestanding_cxx_headers_source,
+    build = [[ cp -rpf $SOURCE_DIR/* . ]],
     install = [[ DESTDIR=$INSTALL_DIR PREFIX=$PREFIX make install ]]
 }
 

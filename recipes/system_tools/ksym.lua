@@ -1,15 +1,14 @@
-local ksym_source = Source {
-    name = "ksym",
-    Local("tools/ksym")
-}
-
 local ksym = Tool {
     name = "ksym",
     version = "1.0",
     revision = 1,
-    dependencies = { "clang", "lld", "make", ksym_source },
+    source = Source {
+        name = "ksym",
+        Local("dist-src/tools/ksym")
+    },
+    dependencies = { "clang", "lld", "make" },
     build = [[
-        cc -g -O2 -pipe $SOURCES_DIR/ksym/ksym.c -o ksym
+        cc -g -O2 -pipe $SOURCE_DIR/ksym.c -o ksym
     ]],
     install = [[
         install -D ksym $INSTALL_DIR$PREFIX/bin/ksym

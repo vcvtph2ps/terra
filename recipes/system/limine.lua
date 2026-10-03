@@ -10,7 +10,8 @@ local limine = Tool {
     name = "limine",
     version = LIMINE_VERSION,
     revision = 1,
-    dependencies = { "clang", "lld", "make", limine_source },
+    source = limine_source,
+    dependencies = { "clang", "lld", "make" },
     build = [[
         cc -g -O2 -pipe -std=c99 $SOURCES_DIR/limine/limine.c -o limine
     ]],

@@ -1,14 +1,13 @@
 local build_meta = require("recipes.packages.build-meta")
 
-local temp_source = Source {
-    name = "temp",
-    Local("temp")
-}
-
-local temp = Package {
-    name = "temp",
+local hello = Package {
+    name = "hello",
     version = "1.0",
     revision = 1,
+    source = Source {
+        name = "hello",
+        Local("dist-src/packages/hello")
+    },
     dependencies = {
         build_meta.binutils,
         build_meta.gcc,
@@ -17,10 +16,9 @@ local temp = Package {
 
         "build-essential",
         "make",
-        temp_source
     },
     build = [[
-        x86_64-lunar-gcc $SOURCES_DIR/temp/hello.c -o $BUILD_DIR/hello
+        x86_64-lunar-gcc $SOURCE_DIR/hello.c -o $BUILD_DIR/hello
     ]],
     install = [[
     	mkdir -p "$INSTALL_DIR$PREFIX/bin"
@@ -28,4 +26,4 @@ local temp = Package {
     ]]
 }
 
-return temp
+return hello

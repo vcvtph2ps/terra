@@ -15,13 +15,13 @@ local pkgconf = Tool {
     name = "pkgconf",
     version = PKGCONF_VERSION,
     revision = 1,
+    source = pkgconf_source,
     dependencies = {
         "build-essential", "gcc-multilib",
         autotools.autoconf, autotools.automake, autotools.libtool,
-        pkgconf_source
     },
     configure = [[
-        $SOURCES_DIR/pkgconf/configure --prefix=$PREFIX
+        $SOURCE_DIR/configure --prefix=$PREFIX
     ]],
     build = [[
         make -j$PARALLELISM

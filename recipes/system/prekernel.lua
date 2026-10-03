@@ -15,8 +15,8 @@ local prekernel = Package {
     name = "prekernel",
     version = "1.0",
     revision = 1,
+    source = prekernel_source,
     dependencies = {
-        prekernel_source,
         kernel,
         clang_tidy_plugin,
         fabricate,
@@ -25,7 +25,7 @@ local prekernel = Package {
     },
     configure = ([[
         fabricate --build-dir=$BUILD_DIR setup \
-            --config=$SOURCES_DIR/prekernel/fab.lua \
+            --config=$SOURCE_DIR/fab.lua \
             --prefix=/ \
             -o arch="{arch}" \
             -o bootloader="{bootloader}" \
@@ -35,7 +35,7 @@ local prekernel = Package {
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
             -source-filter "^.*/prekernel/.*\\.c\$" \
             -header-filter "^.*/prekernel/.*\\.h\$" \
-            -config-file $SOURCES_DIR/prekernel/.clang-tidy \
+            -config-file $SOURCE_DIR/.clang-tidy \
             -use-color
 
         ninja -j$PARALLELISM

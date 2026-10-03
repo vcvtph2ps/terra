@@ -1,4 +1,3 @@
-
 // Copyright (c) meow-me-ow Nyan der Meower
 
 #include <stddef.h>
