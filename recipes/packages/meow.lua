@@ -17,7 +17,7 @@ local meow = Package {
 
         "build-essential",
         "make",
-        meow = meow_source
+        meow_source
     },
     build = [[
         x86_64-lunar-gcc $SOURCES_DIR/meow/meow.c -o $BUILD_DIR/meow

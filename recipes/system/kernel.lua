@@ -8,7 +8,7 @@ local kernel = Package {
     version = "1.0",
     revision = 1,
     dependencies = {
-        kernel = kernel_source,
+        kernel_source,
         fabricate,
         clang_tidy_plugin,
 

@@ -40,7 +40,7 @@ def fmt_options(options: list[tuple[str, str]] | None = None) -> list[str]:
 
     formatted_options: list[str] = []
     for k, v in options:
-        formatted_options.append("--options")
+        formatted_options.append("--option")
         formatted_options.append(f"{k}={v}")
 
     return formatted_options

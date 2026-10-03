@@ -5,7 +5,7 @@ local kernel = require("recipes.system.kernel")
 local prekernel_source = Source {
     name = "prekernel",
     Git("https://github.com/vcvtph2ps/theia.git", "058684ea7f2b8839c07ed115ea73cde1ee9f08e1"),
-    dependencies = { kernel = kernel },
+    dependencies = { kernel },
     prepare = [[
         cp $SYSROOT_DIR/kernel.o $SOURCE_DIR/kernel.o
     ]]
@@ -16,8 +16,8 @@ local prekernel = Package {
     version = "1.0",
     revision = 1,
     dependencies = {
-        prekernel = prekernel_source,
-        kernel = kernel,
+        prekernel_source,
+        kernel,
         clang_tidy_plugin,
         fabricate,
 

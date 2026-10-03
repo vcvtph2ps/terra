@@ -12,6 +12,8 @@ local gcc_bootstrap = Tool {
     dependencies = {
         "build-essential",
         "texinfo",
+        "m4",
+        "perl",
         binutils,
 
         pkgconf,
@@ -20,7 +22,7 @@ local gcc_bootstrap = Tool {
         autotools.automake,
         autotools.libtool,
         autotools.autoconf_archive,
-        libtool = autotools.libtool_source,
+        autotools.libtool_source,
 
         mlibc_headers,
 

@@ -70,7 +70,7 @@ local image = Package {
     dependencies = {
         kernel,
 
-        prekernel = prekernel.source,
+        prekernel.source,
         prekernel.package,
 
         initramfs,
@@ -78,10 +78,10 @@ local image = Package {
         mkimg,
         ksym,
 
-        limine = limine.source,
+        limine.source,
         limine.tool,
 
-        support = support_source,
+        support_source,
 
         "llvm",
 

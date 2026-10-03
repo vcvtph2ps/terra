@@ -27,7 +27,7 @@ local gcc = Tool {
         autotools.automake,
         autotools.libtool,
         autotools.autoconf_archive,
-        libtool = autotools.libtool_source,
+        autotools.libtool_source,
 
         mlibc_headers,
         mlibc,

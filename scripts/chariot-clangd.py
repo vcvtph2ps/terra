@@ -78,7 +78,7 @@ for k, v in source_mappings:
     args.extend(["-m", f"{k}=/chariot/sources/{v}:ro"])
 
 for k, v in options:
-    args.extend(["--options", f"{k}={v}"])
+    args.extend(["--option", f"{k}={v}"])
 
 if arch:
     args.extend(["--arch", arch])

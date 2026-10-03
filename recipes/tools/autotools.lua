@@ -17,7 +17,7 @@ local autoconf = Tool {
     revision = 1,
     dependencies = {
         "m4", "make", "gcc", "perl",
-        autoconf = autoconf_source
+        autoconf_source
     },
     configure = [[
         $SOURCES_DIR/autoconf/configure --prefix=$PREFIX
@@ -74,7 +74,7 @@ local automake = Tool {
         "perl", "m4", "make", "gcc",
         autoconf,
 
-     automake_source
+        automake_source
     },
     configure = [[
         $SOURCES_DIR/automake/configure --prefix=$PREFIX

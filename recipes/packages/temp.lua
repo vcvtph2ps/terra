@@ -17,7 +17,7 @@ local temp = Package {
 
         "build-essential",
         "make",
-        temp = temp_source
+        temp_source
     },
     build = [[
         x86_64-lunar-gcc $SOURCES_DIR/temp/hello.c -o $BUILD_DIR/hello

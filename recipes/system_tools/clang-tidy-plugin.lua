@@ -4,7 +4,7 @@ local clang_tidy_plugin = Tool {
     name = "clang-tidy-plugin",
     version = "1.0",
     revision = 1,
-    dependencies = { clang_tidy_plugin = clang_tidy_plugin_source, "libclang-dev", "llvm-dev", "clang", "lld", "cmake", "ninja-build" },
+    dependencies = { clang_tidy_plugin_source, "libclang-dev", "llvm-dev", "clang", "lld", "cmake", "ninja-build" },
     configure = [[
         cmake -S $SOURCES_DIR/clang_tidy_plugin -G Ninja
     ]],

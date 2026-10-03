@@ -18,7 +18,7 @@ local pkgconf = Tool {
     dependencies = {
         "build-essential", "gcc-multilib",
         autotools.autoconf, autotools.automake, autotools.libtool,
-        pkgconf = pkgconf_source
+        pkgconf_source
     },
     configure = [[
         $SOURCES_DIR/pkgconf/configure --prefix=$PREFIX

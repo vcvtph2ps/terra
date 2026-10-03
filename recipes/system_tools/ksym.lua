@@ -7,7 +7,7 @@ local ksym = Tool {
     name = "ksym",
     version = "1.0",
     revision = 1,
-    dependencies = { "clang", "lld", "make", ksym = ksym_source },
+    dependencies = { "clang", "lld", "make", ksym_source },
     build = [[
         cc -g -O2 -pipe $SOURCES_DIR/ksym/ksym.c -o ksym
     ]],

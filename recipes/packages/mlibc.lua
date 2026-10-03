@@ -17,8 +17,8 @@ local mlibc = Package {
 
         pkgconf,
 
-        support = support_source,
-        mlibc = mlibc_source
+        support_source,
+        mlibc_source
     },
     configure = [[
         meson setup \
