@@ -1,6 +1,6 @@
 # Terra
 
-Distribution for [Lunar](https://github.com/vcvtph2ps/lunar). Uses [chariot](https://github.com/elysium-os/chariot) to manage packages and produce bootable images.
+Distribution for [Lunar](https://github.com/vcvtph2ps/lunar). Uses [chariot](https://github.com/chariot-build/chariot) to manage packages and produce bootable images.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ Distribution for [Lunar](https://github.com/vcvtph2ps/lunar). Uses [chariot](htt
 ## Building
 
 ```sh
-chariot build custom/image -o bootloader=limine -o buildtype=release
+todo...
 ```
 
 Options:
