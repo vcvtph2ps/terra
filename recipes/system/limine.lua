@@ -13,7 +13,7 @@ local limine = Tool {
     source = limine_source,
     dependencies = { "clang", "lld", "make" },
     build = [[
-        cc -g -O2 -pipe -std=c99 $SOURCES_DIR/limine/limine.c -o limine
+        cc -g -O2 -pipe -std=c99 $SOURCE_DIR/limine.c -o limine
     ]],
     install = [[
         install -D limine $INSTALL_DIR$PREFIX/bin/limine

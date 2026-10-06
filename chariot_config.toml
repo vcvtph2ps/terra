@@ -3,4 +3,4 @@ target_prefix = "/usr"
 
 [rootfs]
 version = "debian/20260901T000000Z"
-hash = "7a9147a2fce8ac2bae29fcde0b822ce613ffc73b66acf080c70301f386afee81"
+hash = "51ce308f61d7fe28268c3399c2dd146f5575b5ae2f65cd3221bee9b0d3962fd0"
