@@ -1,6 +1,6 @@
 local mlibc_source = Source {
     name = "mlibc",
-    Git("https://github.com/vcvtph2ps/lunar-mlibc.git", "6ff48ab5319632eb7f9bc67279f114f9ea576cf2"),
+    Git("https://github.com/vcvtph2ps/lunar-mlibc.git", "9314352175692fb17666b16b0b349ea349021c48"),
     dependencies = {
         "meson", "git"
     },
