@@ -89,10 +89,6 @@ def install(
         base_config_path(),
         "--arch",
         arch,
-        "--worker-count",
-        "8",
-        "-j",
-        "16",
         *fmt_options(options),
     ]
 

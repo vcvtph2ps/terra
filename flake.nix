@@ -25,7 +25,7 @@
           llvmPackages_22.clang-tools # clang-format & clang-tidy
           tree
           gdb
-          qemu_full
+          qemu
         ];
       in
       {
