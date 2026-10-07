@@ -1,3 +1,5 @@
+require("recipes.helpers.gnu")
+
 require("recipes.sources.mlibc")
 require("recipes.sources.support")
 

@@ -7,7 +7,7 @@ local AUTOCONF_ARCHIVE_VERSION = "2024.10.16"
 
 local autoconf_source = Source {
     name = "autoconf",
-    Archive("https://ftp.gnu.org/gnu/autoconf/autoconf-" .. AUTOCONF_VERSION .. ".tar.gz", "afb181a76e1ee72832f6581c0eddf8df032b83e2e0239ef79ebedc4467d92d6e"),
+    GnuArchive("autoconf", AUTOCONF_VERSION, "tar.gz", "afb181a76e1ee72832f6581c0eddf8df032b83e2e0239ef79ebedc4467d92d6e"),
     patches = { "patches/autoconf.patch" }
 }
 
@@ -32,7 +32,7 @@ local autoconf = Tool {
 
 local autoconf_2_69_source = Source {
     name = "autoconf_2_69",
-    Archive("https://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz", "954bd69b391edc12d6a4a51a2dd1476543da5c6bbf05a95b59dc0dd6fd4c2969"),
+    GnuArchive("autoconf", "2.69", "tar.gz", "954bd69b391edc12d6a4a51a2dd1476543da5c6bbf05a95b59dc0dd6fd4c2969"),
 }
 
 -- binutils is a picky little bitch and wants EXACTLY 2.69
@@ -58,7 +58,7 @@ local autoconf_2_69 = Tool {
 
 local automake_source = Source {
     name = "automake",
-    Archive("https://ftp.gnu.org/gnu/automake/automake-" .. AUTOMAKE_VERSION .. ".tar.gz", "07bd24ad08a64bc17250ce09ec56e921d6343903943e99ccf63bbf0705e34605"),
+    GnuArchive("automake", AUTOMAKE_VERSION, "tar.gz", "07bd24ad08a64bc17250ce09ec56e921d6343903943e99ccf63bbf0705e34605"),
     dependencies = { autoconf_source },
     prepare = [[
         cp $SOURCES_DIR/autoconf/build-aux/config.guess ./lib
@@ -88,7 +88,7 @@ local automake = Tool {
 
 local libtool_source = Source {
     name = "libtool",
-    Archive("https://ftp.gnu.org/gnu/libtool/libtool-" .. LIBTOOL_VERSION .. ".tar.xz", "f81f5860666b0bc7d84baddefa60d1cb9fa6fceb2398cc3baca6afaa60266675"),
+    GnuArchive("libtool", LIBTOOL_VERSION, "tar.xz", "f81f5860666b0bc7d84baddefa60d1cb9fa6fceb2398cc3baca6afaa60266675"),
     dependencies = { reconfigure, autoconf, automake, "perl", "m4" },
     prepare = [[
         LIBTOOLIZE=true reconfigure.sh
@@ -123,7 +123,7 @@ local autoconf_archive = Tool {
     dependencies = {
         Source {
             name = "autoconf_archive",
-            Archive("https://ftp.gnu.org/gnu/autoconf-archive/autoconf-archive-" .. AUTOCONF_ARCHIVE_VERSION .. ".tar.xz", "7bcd5d001916f3a50ed7436f4f700e3d2b1bade3ed803219c592d62502a57363")
+            GnuArchive("autoconf-archive", AUTOCONF_ARCHIVE_VERSION, "tar.xz", "7bcd5d001916f3a50ed7436f4f700e3d2b1bade3ed803219c592d62502a57363")
         }
     },
     install = [[
@@ -140,30 +140,3 @@ return {
     libtool = libtool,
     autoconf_archive = autoconf_archive
 }
-
--- @collection autotools_2.69 = [tool/autoconf_2.69 tool/automake tool/libtool]
-
--- // Autoconf
-
-
-
--- // Autoconf 2.69
-
--- source/autoconf_2.69 {
---     url: "https://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz"
---     b2sum: "7e8a513bbfcabadad1577919c048cc05ca0a084788850b42570f88afc2fa9c25fb32277412f135b81ba1c0d8079465a6b581d2d78662c991d2183b739fac407c"
---     type: "tar.gz"
--- }
-
--- tool/autoconf_2.69 {
---     dependencies: [ source/autoconf_2.69 ]
---     configure: <sh>
---         $SOURCES_DIR/autoconf_2.69/configure --prefix=$PREFIX
---     </sh>
---     build: <sh>
---         make -j$PARALLELISM
---     </sh>}
---     install: <sh>
---         DESTDIR=$INSTALL_DIR make install
---     </sh>
--- }

@@ -5,7 +5,7 @@ local pkgconf = require("recipes.tools.pkgconf")
 
 local binutils_source = Source {
     name = "binutils",
-    Archive("https://ftp.gnu.org/gnu/binutils/binutils-" .. BINUTILS_VERSION .. ".tar.gz", "0cdd76777a0dfd3dd3a63f215f030208ddb91c2361d2bcc02acec0f1c16b6a2e"),
+    GnuArchive("binutils", BINUTILS_VERSION, "tar.gz", "0cdd76777a0dfd3dd3a63f215f030208ddb91c2361d2bcc02acec0f1c16b6a2e"),
     patches = { "patches/binutils.patch" },
     dependencies = { "perl", "m4", pkgconf, reconfigure, autotools.autoconf_2_69, autotools.automake, autotools.libtool, autotools.libtool_source },
     prepare = [[
