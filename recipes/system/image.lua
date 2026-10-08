@@ -48,7 +48,7 @@ end
 
 local efi_files = root_files
 
-if chariot.options["tartarus"] then
+if chariot.options["bootloader"] == "tartarus" then
     table.insert(efi_files,
         "${SYSROOT_DIR}${PREFIX}/share/tartarus/tartarus.efi@/EFI/BOOT/BOOTX64.EFI"
     )
