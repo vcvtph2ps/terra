@@ -7,3 +7,9 @@ edk2-ovmf/
 __pycache__/
 dest/
 .luarc.json
+
+# Random build artifacts
+*.img
+*.rdk
+image_temp/
+initramfs_temp/

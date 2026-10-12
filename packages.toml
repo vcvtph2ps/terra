@@ -1,0 +1,11 @@
+# Packages installed into the initramfs
+
+[packages]
+x86_64 = [
+    "mlibc",
+    "bash",
+    "meow",
+    "hello",
+]
+
+riscv64 = []

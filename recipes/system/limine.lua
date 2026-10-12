@@ -5,8 +5,19 @@ local limine_source = Source {
     Archive("https://github.com/Limine-Bootloader/Limine/releases/download/v" .. LIMINE_VERSION .. "/limine-binary.tar.xz", "4e788c85c427c3e12c7592938e3b0f49853e7f150fa470b37ac931371e079e8e")
 }
 
+local limine = Package {
+    name = "limine",
+    version = LIMINE_VERSION,
+    revision = 1,
+    source = limine_source,
+    install = [[
+        ls $SOURCE_DIR
+        install $SOURCE_DIR/*.EFI $INSTALL_DIR
+        install $SOURCE_DIR/limine-bios.sys $INSTALL_DIR
+    ]]
+}
 
-local limine = Tool {
+local limine_tool = Tool {
     name = "limine",
     version = LIMINE_VERSION,
     revision = 1,
@@ -21,6 +32,6 @@ local limine = Tool {
 }
 
 return {
-    source = limine_source,
-    tool = limine
+    limine = limine,
+    tool = limine_tool
 }

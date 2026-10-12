@@ -62,6 +62,53 @@ def split_arch(
     return arch, [(k, v) for k, v in options if k != "arch"]
 
 
+def exec_tool(
+    tools: list[str],
+    command: str,
+    options: list[tuple[str, str]],
+    cwd: str = "/",
+    mounts: list[str] = [],
+    arch: str | None = None,
+    dest: str | None = None,
+):
+    arch, options = split_arch(options, arch)
+
+    if dest is None:
+        dest = dest_path()
+
+    extra_args = []
+    for x in tools:
+        extra_args.append("--tool")
+        extra_args.append(x)
+
+    for x in mounts:
+        extra_args.append("--mount")
+        extra_args.append(x)
+
+    cmd = [
+        "chariot",
+        "--local-config",
+        local_config_path(),
+        "exec",
+        "--cache",
+        cache_path(),
+        "--rootfs",
+        rootfs_path(),
+        "--base-config",
+        base_config_path(),
+        "--cwd",
+        cwd,
+        *extra_args,
+        "--arch",
+        arch,
+        *fmt_options(options),
+        f"{command}",
+    ]
+
+    print(cmd)
+    return subprocess.run(cmd, cwd=project_path())
+
+
 def install(
     packages: list[str],
     options: list[tuple[str, str]] | None = None,

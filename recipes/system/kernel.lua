@@ -1,5 +1,6 @@
 local fabricate = require("recipes.system_tools.fabricate")
 local clang_tidy_plugin = require("recipes.system_tools.clang-tidy-plugin")
+local ksym = require("recipes.system_tools.ksym")
 
 local kernel_source = Source { name = "kernel", Git("https://github.com/vcvtph2ps/lunar.git", "de0bd9c17f71809b056a6cbef9cefb45098245d3") }
 
@@ -61,4 +62,18 @@ local kernel = Package {
     ]]
 }
 
-return kernel
+local kernel_symbols = Package {
+    name = "kernel_symbols",
+    version = "1.0",
+    revision = 1,
+    dependencies = { kernel, ksym, "llvm" },
+    build = [[
+        llvm-nm -S $SYSROOT_DIR/kernel.elf -n > ./kernel_symbols.txt
+        ksym ./kernel_symbols.txt ./kernel.ksym
+    ]],
+    install = [[
+        install kernel.ksym $INSTALL_DIR
+    ]]
+}
+
+return { kernel = kernel, symbols = kernel_symbols }

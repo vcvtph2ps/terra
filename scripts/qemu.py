@@ -7,8 +7,11 @@ import platform
 import subprocess
 import sys
 from dataclasses import dataclass, replace
+from pathlib import Path
 
 import chariot_utils
+import tomllib
+from make_image import build_image
 
 
 def download_ovmf():
@@ -23,6 +26,19 @@ def download_ovmf():
     if r.returncode != 0:
         print("Failed to download OVMF firmware")
         sys.exit(1)
+
+
+def load_packages(arch: str, path: Path | None = None) -> list[str]:
+    if path is None:
+        path = Path(chariot_utils.project_path(), "packages.toml")
+
+    with path.open("rb") as f:
+        packages = tomllib.load(f)["packages"]
+
+    if arch not in packages:
+        sys.exit(f"No packages configured for architecture '{arch}' in {path}")
+
+    return packages[arch]
 
 
 class xApicState(enum.Enum):
@@ -47,11 +63,8 @@ class Config:
 
 def normalize(cfg: Config) -> Config:
     if cfg.arch != "x86_64":
-        cfg = replace(
-            cfg,
-            uefi=True,
-            bootloader="limine",
-        )
+        if cfg.bootloader == "limine":
+            cfg = replace(cfg, uefi=True)
 
     if cfg.arch == "x86_64":
         cfg = replace(cfg, acpi=True)
@@ -191,80 +204,57 @@ def validate(cfg: Config):
     if cfg.accel == "kvm" and platform.machine() != cfg.arch:
         raise ValueError("KVM can only be used with the host architecture")
 
-    if cfg.bootloader == "tartarus" and cfg.arch == "riscv64":
-        raise ValueError("Tartarus is not supported on riscv64")
-
     if cfg.arch == "x86_64" and not cfg.acpi:
         raise ValueError("ACPI is required on x86_64")
 
-
-download_ovmf()
-
-cfg = parse_args()
-validate(cfg)
-
-chariot_options = [
-    ("bootloader", cfg.bootloader),
-    ("build_type", "release" if cfg.release else "debug"),
-]
+    if cfg.arch == "riscv64" and not cfg.uefi and cfg.acpi:
+        raise ValueError("ACPI is not supported on riscv-opensbi")
 
 
-if (
-    chariot_utils.install(
-        [
-            "kernel",
-            "image",
-        ],
-        options=chariot_options,
-        arch=cfg.arch,
-        force=True,
-    ).returncode
-    != 0
-):
-    print("Build failed")
-    sys.exit(1)
-
-
-drive_file = f"{chariot_utils.dest_path()}/kernel_{cfg.bootloader}_{'efi' if cfg.uefi else 'bios'}.img"
-
-qemu_cmd = [
-    f"qemu-system-{cfg.arch}",
-    "-m",
-    "512m",
-    "--no-reboot",
-    "--no-shutdown",
-    "-s",
-    "-smp",
-    f"cpus={cfg.smp}",
-]
-
-if cfg.arch == "riscv64":
-    qemu_cmd += [
-        "-drive",
-        f"format=raw,if=virtio,file={drive_file}",
-    ]
-else:
-    qemu_cmd += [
-        "-drive",
-        f"format=raw,file={drive_file}",
+def qemu_command(cfg: Config, drive_file: str) -> list[str]:
+    qemu_cmd = [
+        f"qemu-system-{cfg.arch}",
+        "-m",
+        "512m",
+        "--no-reboot",
+        "--no-shutdown",
+        "-s",
+        "-smp",
+        f"cpus={cfg.smp}",
     ]
 
-qemu_cmd += [
-    "-d",
-    "int,cpu_reset",
-    "-D",
-    "qemu_err.log",
-]
+    if cfg.arch == "riscv64":
+        if cfg.uefi:
+            qemu_cmd += [
+                "-drive",
+                f"format=raw,if=virtio,file={drive_file}",
+            ]
+        else:
+            qemu_cmd += ["-kernel", "dest/usr/share/tartarus/riscv64-opensbi.bin"]
+            qemu_cmd += ["-global", "virtio-mmio.force-legacy=false"]
+            qemu_cmd += ["-drive", f"file={drive_file},if=none,format=raw,id=x0"]
+            qemu_cmd += ["-device", "virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0"]
+    else:
+        qemu_cmd += [
+            "-drive",
+            f"format=raw,file={drive_file}",
+        ]
 
-if not cfg.graphics:
     qemu_cmd += [
-        "-vga",
-        "none",
-        "-display",
-        "none",
+        "-d",
+        "int,cpu_reset",
+        "-D",
+        "qemu_err.log",
     ]
-else:
-    if cfg.arch == "x86_64":
+
+    if not cfg.graphics:
+        qemu_cmd += [
+            "-vga",
+            "none",
+            "-display",
+            "none",
+        ]
+    elif cfg.arch == "x86_64":
         qemu_cmd += [
             "-vga",
             "std",
@@ -275,62 +265,86 @@ else:
             "ramfb",
         ]
 
-if cfg.apicState == xApicState.X2APIC_ONLY:
-    qemu_cmd[0] = f"../qemu/build/qemu-system-{cfg.arch}"
-    qemu_cmd += [
-        "-global",
-        "apic.x2apic-locked=on",
-        "-global",
-        "apic.x2apic-mce=on",
-    ]
-
-if cfg.uefi:
-    qemu_cmd += [
-        "-drive",
-        f"if=pflash,unit=0,format=raw,file=edk2-ovmf/ovmf-code-{cfg.arch}.fd,readonly=on",
-    ]
-
-if cfg.arch == "x86_64":
-    qemu_cmd += [
-        "-serial",
-        "stdio",
-    ]
-    xapic_option = "on" if cfg.apicState != xApicState.NO_X2APIC else "off"
-    if cfg.accel == "kvm":
+    if cfg.apicState == xApicState.X2APIC_ONLY:
+        qemu_cmd[0] = f"../qemu/build/qemu-system-{cfg.arch}"
         qemu_cmd += [
-            "-M",
-            "q35,accel=kvm",
-            "-cpu",
-            f"host,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,umip=on",
+            "-global",
+            "apic.x2apic-locked=on",
+            "-global",
+            "apic.x2apic-mce=on",
         ]
+
+    if cfg.uefi:
+        qemu_cmd += [
+            "-drive",
+            f"if=pflash,unit=0,format=raw,file=edk2-ovmf/ovmf-code-{cfg.arch}.fd,readonly=on",
+        ]
+
+    if cfg.arch == "x86_64":
+        qemu_cmd += [
+            "-serial",
+            "stdio",
+        ]
+        xapic_option = "on" if cfg.apicState != xApicState.NO_X2APIC else "off"
+        if cfg.accel == "kvm":
+            qemu_cmd += [
+                "-M",
+                "q35,accel=kvm",
+                "-cpu",
+                f"host,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,umip=on",
+            ]
+        else:
+            qemu_cmd += [
+                "-M",
+                "q35,accel=tcg,smm=off",
+                "-cpu",
+                f"Skylake-Client,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,la57=on,umip=on,tsc-frequency=2500000000",
+            ]
     else:
         qemu_cmd += [
+            "-serial",
+            "stdio",
             "-M",
-            "q35,accel=tcg,smm=off",
+            f"virt,acpi={'on' if cfg.acpi else 'off'}",
             "-cpu",
-            f"Skylake-Client,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,la57=on,umip=on,tsc-frequency=2500000000",
+            "rv64",
         ]
-else:
-    qemu_cmd += [
-        "-serial",
-        "stdio",
-        "-M",
-        f"virt,acpi={'on' if cfg.acpi else 'off'}",
-        "-cpu",
-        "rv64",
-    ]
 
-qemu_cmd += [
-    "-device",
-    "pxb-pcie,bus=pcie.0,id=pcie.1,bus_nr=128",
-    "-device",
-    "pcie-root-port,bus=pcie.1,id=rp0",
-    "-device",
-    "qemu-xhci,bus=rp0",
-]
+    if cfg.arch == "x86_64":
+        qemu_cmd += [
+            "-device",
+            "pxb-pcie,bus=pcie.0,id=pcie.1,bus_nr=128",
+            "-device",
+            "pcie-root-port,bus=pcie.1,id=rp0",
+            "-device",
+            "qemu-xhci,bus=rp0",
+        ]
 
-if cfg.pause:
-    qemu_cmd.append("-S")
+    if cfg.pause:
+        qemu_cmd.append("-S")
 
-print(" ".join(qemu_cmd))
-subprocess.run(qemu_cmd)
+    return qemu_cmd
+
+
+def main() -> None:
+    download_ovmf()
+
+    cfg = parse_args()
+    validate(cfg)
+
+    firmware = "efi" if cfg.uefi else "bios" if cfg.arch != "riscv64" else "opensbi"
+    image_name = f"{cfg.bootloader}-{cfg.arch}-{firmware}"
+    build_image(
+        image_name,
+        load_packages(cfg.arch),
+        Path("."),
+        "release" if cfg.release else "debug",
+    )
+
+    qemu_cmd = qemu_command(cfg, f"{image_name}.img")
+    print(" ".join(qemu_cmd))
+    subprocess.run(qemu_cmd)
+
+
+if __name__ == "__main__":
+    main()

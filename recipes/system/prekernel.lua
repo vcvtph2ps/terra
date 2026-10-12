@@ -5,7 +5,7 @@ local kernel = require("recipes.system.kernel")
 local prekernel_source = Source {
     name = "prekernel",
     Git("https://github.com/vcvtph2ps/theia.git", "058684ea7f2b8839c07ed115ea73cde1ee9f08e1"),
-    dependencies = { kernel },
+    dependencies = { kernel.kernel },
     prepare = [[
         cp $SYSROOT_DIR/kernel.o $SOURCE_DIR/kernel.o
     ]]
@@ -17,7 +17,7 @@ local prekernel = Package {
     revision = 1,
     source = prekernel_source,
     dependencies = {
-        kernel,
+        kernel.kernel,
         clang_tidy_plugin,
         fabricate,
 
@@ -28,8 +28,7 @@ local prekernel = Package {
             --config=$SOURCE_DIR/fab.lua \
             --prefix=/ \
             -o arch="{arch}" \
-            -o bootloader="{bootloader}" \
-    ]]):gsub("{arch}", chariot.target_arch):gsub("{bootloader}", chariot.options["bootloader"]),
+    ]]):gsub("{arch}", chariot.target_arch),
     build = [[
         run-clang-tidy \
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
@@ -42,6 +41,8 @@ local prekernel = Package {
     ]],
     install = [[
         fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR
+        install $SOURCE_DIR/support/tartarus.cfg $INSTALL_DIR
+        install $SOURCE_DIR/support/limine.conf $INSTALL_DIR
     ]]
 }
 

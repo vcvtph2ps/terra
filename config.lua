@@ -21,8 +21,9 @@ require("recipes.system.limine")
 
 require("recipes.system.kernel")
 require("recipes.system.prekernel")
-require("recipes.system.image")
 
 require("recipes.packages.mlibc_headers")
 require("recipes.packages.mlibc")
 require("recipes.packages.bash")
+require("recipes.packages.hello")
+require("recipes.packages.meow")
