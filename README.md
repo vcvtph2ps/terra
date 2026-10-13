@@ -31,14 +31,14 @@ python3 scripts/qemu.py [options]
 
 | Flag            | Description                                                                                                                  |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `--arch`        | Architecture to build and run (`x86_64`, `riscv64`); non-x86_64 targets use UEFI + Limine                                    |
+| `--arch`        | Architecture to build and run (`x86_64`, `riscv64`);                                                                         |
 | `--riscv64`     | Shorthand for `--arch riscv64`                                                                                               |
 | `--accel`       | Acceleration mode (`tcg`, `kvm`); KVM requires the host architecture to match                                                |
 | `--kvm`         | Use KVM acceleration                                                                                                         |
 | `--tcg`         | Use TCG emulation (default)                                                                                                  |
-| `--bootloader`  | Bootloader to use (`tartarus`, `limine`); Tartarus is only supported on x86_64                                               |
+| `--bootloader`  | Bootloader to use (`tartarus`, `limine`); Limine requires uefi on non x86_64 platforms                                       |
 | `--limine`      | Shorthand for `--bootloader limine`                                                                                          |
-| `--uefi`        | Boot with UEFI firmware (OVMF); implied on non-x86_64 targets                                                                |
+| `--uefi`        | Boot with UEFI firmware (OVMF)                                                                                               |
 | `--gfx`         | Enable graphical display                                                                                                     |
 | `--pause`       | Pause CPU at startup                                                                                                         |
 | `--cores`       | Number of CPU cores (default 2)                                                                                              |
