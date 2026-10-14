@@ -41,7 +41,7 @@ def make_image(image: str, root: Path, dest: Path, build_type: str = "debug") ->
 
     options = [("build_type", build_type), ("bootloader", bootloader)]
 
-    packages = ["kernel_symbols", "prekernel"]
+    packages = ["kernel_symbols", "prekernel", "kernel"]
     if bootloader == "tartarus":
         packages.append(f"tartarus_{firmware}")
     elif bootloader == "limine":

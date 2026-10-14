@@ -298,7 +298,7 @@ def qemu_command(cfg: Config, drive_file: str) -> list[str]:
                 "-M",
                 "q35,accel=tcg,smm=off",
                 "-cpu",
-                f"Skylake-Client,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},xsave=on,xsaveopt=on,xsavec=on,xsaves=on,avx=on,avx2=on,fma=on,la57=on,umip=on,tsc-frequency=2500000000",
+                f"max,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},la57=on",
             ]
     else:
         qemu_cmd += [
