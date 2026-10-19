@@ -1,0 +1,16 @@
+[host_machine]
+system = 'lunar'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'
+
+[binaries]
+c = 'clang'
+cpp = 'clang++'
+c_ld = 'lld'
+ar = 'llvm-ar'
+strip = 'llvm-strip'
+ld = 'x86_64-lunar-ld'
+
+[properties]
+needs_exe_wrapper = true

@@ -1,0 +1,418 @@
+diff --git a/clang/lib/Basic/LangStandards.cpp b/clang/lib/Basic/LangStandards.cpp
+index 01c524b72..92d52c039 100644
+--- a/clang/lib/Basic/LangStandards.cpp
++++ b/clang/lib/Basic/LangStandards.cpp
+@@ -104,6 +104,8 @@ LangStandard::Kind clang::getDefaultLanguageStandard(clang::Language Lang,
+     return LangStandard::lang_openclcpp10;
+   case Language::Asm:
+   case Language::C:
++    if (T.getOS() == llvm::Triple::Lunar)
++      return LangStandard::lang_gnu23;
+     // The PS4 uses C99 as the default C standard.
+     if (T.isPS4())
+       return LangStandard::lang_gnu99;
+@@ -114,6 +116,8 @@ LangStandard::Kind clang::getDefaultLanguageStandard(clang::Language Lang,
+   case Language::ObjCXX:
+   case Language::CUDA:
+   case Language::HIP:
++    if (T.getOS() == llvm::Triple::Lunar)
++      return LangStandard::lang_gnucxx20;
+     return LangStandard::lang_gnucxx17;
+   case Language::HLSL:
+     return LangStandard::lang_hlsl202x;
+diff --git a/clang/lib/Basic/Targets.cpp b/clang/lib/Basic/Targets.cpp
+index 8c01cfca8..db76ba8c8 100644
+--- a/clang/lib/Basic/Targets.cpp
++++ b/clang/lib/Basic/Targets.cpp
+@@ -492,6 +492,8 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
+     case llvm::Triple::Serenity:
+       return std::make_unique<SerenityTargetInfo<RISCV64TargetInfo>>(Triple,
+                                                                      Opts);
++    case llvm::Triple::Lunar:
++      return std::make_unique<LunarTargetInfo<RISCV64TargetInfo>>(Triple, Opts);
+     default:
+       return std::make_unique<RISCV64TargetInfo>(Triple, Opts);
+     }
+@@ -693,6 +695,8 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
+     case llvm::Triple::Serenity:
+       return std::make_unique<SerenityTargetInfo<X86_64TargetInfo>>(Triple,
+                                                                     Opts);
++    case llvm::Triple::Lunar:
++      return std::make_unique<LunarTargetInfo<X86_64TargetInfo>>(Triple, Opts);
+     default:
+       return std::make_unique<X86_64TargetInfo>(Triple, Opts);
+     }
+diff --git a/clang/lib/Basic/Targets/OSTargets.h b/clang/lib/Basic/Targets/OSTargets.h
+index 7c4666606..d3bfc6a30 100644
+--- a/clang/lib/Basic/Targets/OSTargets.h
++++ b/clang/lib/Basic/Targets/OSTargets.h
+@@ -1139,6 +1139,36 @@ public:
+   }
+ };
+ 
++// Lunar target
++template <typename Target>
++class LLVM_LIBRARY_VISIBILITY LunarTargetInfo : public OSTargetInfo<Target> {
++protected:
++  void getOSDefines(const LangOptions &Opts, const llvm::Triple &Triple,
++                    MacroBuilder &Builder) const override {
++    Builder.defineMacro("__lunar__");
++    DefineStd(Builder, "unix", Opts);
++    if (Opts.POSIXThreads)
++      Builder.defineMacro("_REENTRANT");
++    if (Opts.CPlusPlus)
++      Builder.defineMacro("_GNU_SOURCE");
++    if (this->HasFloat128)
++      Builder.defineMacro("__FLOAT128__");
++  }
++
++public:
++  LunarTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
++      : OSTargetInfo<Target>(Triple, Opts) {
++    switch (Triple.getArch()) {
++    default:
++      break;
++    case llvm::Triple::x86:
++    case llvm::Triple::x86_64:
++      this->HasFloat128 = true;
++      break;
++    }
++  }
++};
++
+ } // namespace targets
+ } // namespace clang
+ #endif // LLVM_CLANG_LIB_BASIC_TARGETS_OSTARGETS_H
+diff --git a/clang/lib/Driver/CMakeLists.txt b/clang/lib/Driver/CMakeLists.txt
+index 506536cdc..3ec0f51ed 100644
+--- a/clang/lib/Driver/CMakeLists.txt
++++ b/clang/lib/Driver/CMakeLists.txt
+@@ -63,6 +63,7 @@ add_clang_library(clangDriver
+   ToolChains/Cygwin.cpp
+   ToolChains/Darwin.cpp
+   ToolChains/DragonFly.cpp
++  ToolChains/Lunar.cpp
+   ToolChains/Flang.cpp
+   ToolChains/FreeBSD.cpp
+   ToolChains/Fuchsia.cpp
+diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
+index e606cdc4c..07ed27531 100644
+--- a/clang/lib/Driver/Driver.cpp
++++ b/clang/lib/Driver/Driver.cpp
+@@ -31,6 +31,7 @@
+ #include "ToolChains/LFILinux.h"
+ #include "ToolChains/Lanai.h"
+ #include "ToolChains/Linux.h"
++#include "ToolChains/Lunar.h"
+ #include "ToolChains/MSP430.h"
+ #include "ToolChains/MSVC.h"
+ #include "ToolChains/Managarm.h"
+@@ -7122,6 +7123,9 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
+     case llvm::Triple::DragonFly:
+       TC = std::make_unique<toolchains::DragonFly>(*this, Target, Args);
+       break;
++    case llvm::Triple::Lunar:
++      TC = std::make_unique<toolchains::LunarToolChain>(*this, Target, Args);
++      break;
+     case llvm::Triple::OpenBSD:
+       TC = std::make_unique<toolchains::OpenBSD>(*this, Target, Args);
+       break;
+diff --git a/clang/lib/Driver/ToolChains/Lunar.cpp b/clang/lib/Driver/ToolChains/Lunar.cpp
+new file mode 100644
+index 000000000..f0f6123b0
+--- /dev/null
++++ b/clang/lib/Driver/ToolChains/Lunar.cpp
+@@ -0,0 +1,111 @@
++//===---- Lunar.cpp - Lunar ToolChain Implementation ------*- C++ -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++
++#include "Lunar.h"
++#include "clang/Driver/CommonArgs.h"
++#include "clang/Driver/Compilation.h"
++#include "clang/Driver/Driver.h"
++#include "clang/Options/Options.h"
++#include "llvm/Option/ArgList.h"
++
++using namespace clang::driver;
++using namespace clang::driver::toolchains;
++using namespace clang;
++using namespace llvm::opt;
++
++void tools::lunar::Linker::ConstructJob(Compilation &C, const JobAction &JA, const InputInfo &Output, const InputInfoList &Inputs, const ArgList &Args, const char *LinkingOutput) const {
++  const auto &TC = static_cast<const LunarToolChain &>(getToolChain());
++  const Driver &D = TC.getDriver();
++  ArgStringList CmdArgs;
++
++  if (!D.SysRoot.empty())
++    CmdArgs.push_back(Args.MakeArgString("--sysroot=" + D.SysRoot));
++
++  if (Args.hasArg(options::OPT_shared))
++    CmdArgs.push_back("-shared");
++  else if (Args.hasArg(options::OPT_static, options::OPT_static_pie))
++    CmdArgs.push_back("-static");
++  else if (!Args.hasArg(options::OPT_r)) {
++    CmdArgs.push_back("-dynamic-linker");
++    CmdArgs.push_back(Args.MakeArgString(TC.getDynamicLinker(Args)));
++  }
++
++  bool isPIE = Args.hasArg(options::OPT_pie, options::OPT_static_pie) && !Args.hasArg(options::OPT_no_pie, options::OPT_shared, options::OPT_r);
++
++  if (isPIE)
++    CmdArgs.push_back("-pie");
++
++  CmdArgs.push_back("--eh-frame-hdr");
++
++  if (Output.isFilename()) {
++    CmdArgs.push_back("-o");
++    CmdArgs.push_back(Output.getFilename());
++  }
++
++  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles, options::OPT_r)) {
++    if (!Args.hasArg(options::OPT_shared))
++      CmdArgs.push_back(Args.MakeArgString(TC.GetFilePath(isPIE ? "Scrt1.o" : "crt1.o")));
++    CmdArgs.push_back(Args.MakeArgString(TC.GetFilePath("crti.o")));
++    CmdArgs.push_back(TC.getCompilerRTArgString(Args, "crtbegin", ToolChain::FT_Object));
++  }
++
++  Args.addAllArgs(CmdArgs, {options::OPT_L, options::OPT_u});
++  Args.addAllArgs(CmdArgs, {options::OPT_T_Group, options::OPT_s, options::OPT_t});
++
++  TC.AddFilePathLibArgs(Args, CmdArgs);
++  AddLinkerInputs(TC, Inputs, Args, CmdArgs, JA);
++
++  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs, options::OPT_r)) {
++    if (TC.ShouldLinkCXXStdlib(Args)) {
++      CmdArgs.push_back("-lc++");
++      CmdArgs.push_back("-lc++abi");
++      CmdArgs.push_back("-lunwind");
++    }
++    CmdArgs.push_back("-lc");
++    AddRunTimeLibs(TC, D, CmdArgs, Args);
++  }
++
++  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles, options::OPT_r)) {
++    CmdArgs.push_back(TC.getCompilerRTArgString(Args, "crtend", ToolChain::FT_Object));
++    CmdArgs.push_back(Args.MakeArgString(TC.GetFilePath("crtn.o")));
++  }
++
++  const char *Exec = Args.MakeArgString(TC.GetLinkerPath());
++  C.addCommand(std::make_unique<Command>(JA, *this, ResponseFileSupport::AtFileCurCP(), Exec, CmdArgs, Inputs, Output));
++}
++
++LunarToolChain::LunarToolChain(const Driver &D, const llvm::Triple &Triple, const ArgList &Args) : Generic_ELF(D, Triple, Args) {
++  getFilePaths().push_back(concat(getDriver().SysRoot, "/usr/lib"));
++  getLibraryPaths().push_back(concat(getDriver().SysRoot, "/usr/lib/clang/23/lib", getTriple().str()));
++}
++
++Tool *LunarToolChain::buildLinker() const {
++  return new tools::lunar::Linker(*this);
++}
++
++void LunarToolChain::AddClangSystemIncludeArgs(const ArgList &DriverArgs, ArgStringList &CC1Args) const {
++  const Driver &D = getDriver();
++
++  if (DriverArgs.hasArg(options::OPT_nostdinc))
++    return;
++
++  if (!DriverArgs.hasArg(options::OPT_nobuiltininc))
++    addSystemInclude(DriverArgs, CC1Args, concat(D.ResourceDir, "/include"));
++
++  if (DriverArgs.hasArg(options::OPT_nostdlibinc))
++    return;
++
++  addSystemInclude(DriverArgs, CC1Args, concat(D.SysRoot, "/usr/include"));
++}
++
++void LunarToolChain::AddClangCXXStdlibIncludeArgs(const ArgList &DriverArgs, ArgStringList &CC1Args) const {
++  if (DriverArgs.hasArg(options::OPT_nostdinc, options::OPT_nostdincxx, options::OPT_nostdlibinc))
++    return;
++  if (GetCXXStdlibType(DriverArgs) == ToolChain::CST_Libcxx)
++    addSystemInclude(DriverArgs, CC1Args, concat(getDriver().SysRoot, "/usr/include/c++/v1"));
++}
+diff --git a/clang/lib/Driver/ToolChains/Lunar.h b/clang/lib/Driver/ToolChains/Lunar.h
+new file mode 100644
+index 000000000..6f230b298
+--- /dev/null
++++ b/clang/lib/Driver/ToolChains/Lunar.h
+@@ -0,0 +1,52 @@
++//===---- Lunar.h - Lunar ToolChain Implementation --------*- C++ -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++
++#pragma once
++
++#include "Gnu.h"
++#include "clang/Driver/Tool.h"
++#include "clang/Driver/ToolChain.h"
++
++namespace clang {
++namespace driver {
++namespace tools {
++namespace lunar {
++
++class LLVM_LIBRARY_VISIBILITY Linker final : public Tool {
++public:
++  Linker(const ToolChain &TC) : Tool("lunar::Linker", "linker", TC) {}
++
++  bool hasIntegratedCPP() const override { return false; }
++  bool isLinkJob() const override { return true; }
++
++  void ConstructJob(Compilation &C, const JobAction &JA, const InputInfo &Output, const InputInfoList &Inputs, const llvm::opt::ArgList &TCArgs, const char *LinkingOutput) const override;
++};
++
++} // end namespace lunar
++} // end namespace tools
++
++namespace toolchains {
++
++class LLVM_LIBRARY_VISIBILITY LunarToolChain final : public Generic_ELF {
++public:
++    LunarToolChain(const Driver &D, const llvm::Triple &Triple, const llvm::opt::ArgList &Args);
++
++  void AddClangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs, llvm::opt::ArgStringList &CC1Args) const override;
++  const char *getDefaultLinker() const override { return "ld.lld"; }
++  std::string getDynamicLinker(const llvm::opt::ArgList &Args) const override { return "/usr/lib/ld.so"; }
++  RuntimeLibType GetDefaultRuntimeLibType() const override { return ToolChain::RLT_CompilerRT; }
++  CXXStdlibType GetDefaultCXXStdlibType() const override { return ToolChain::CST_Libcxx; }
++
++protected:
++  void AddClangCXXStdlibIncludeArgs(const llvm::opt::ArgList &DriverArgs, llvm::opt::ArgStringList &CC1Args) const override;
++  Tool *buildLinker() const override;
++};
++
++} // end namespace toolchains
++} // end namespace driver
++} // end namespace clang
+diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
+index e894086b6..05ecda356 100644
+--- a/clang/lib/Lex/InitHeaderSearch.cpp
++++ b/clang/lib/Lex/InitHeaderSearch.cpp
+@@ -236,6 +236,7 @@ bool InitHeaderSearch::ShouldAddDefaultIncludePaths(
+   case llvm::Triple::WASIp3:
+   case llvm::Triple::Win32:
+   case llvm::Triple::ZOS:
++  case llvm::Triple::Lunar:
+     return false;
+ 
+   case llvm::Triple::UnknownOS:
+diff --git a/libcxx/include/__config b/libcxx/include/__config
+index 4178514cc..ceef37a9e 100644
+--- a/libcxx/include/__config
++++ b/libcxx/include/__config
+@@ -298,7 +298,7 @@ typedef __char32_t char32_t;
+ #  endif
+ 
+ #  if defined(__BIONIC__) || defined(__NuttX__) || defined(__Fuchsia__) || defined(__wasi__) ||                        \
+-      _LIBCPP_HAS_MUSL_LIBC || defined(__OpenBSD__) || _LIBCPP_LIBC_LLVM_LIBC
++      _LIBCPP_HAS_MUSL_LIBC || defined(__OpenBSD__) || defined(__lunar__) || _LIBCPP_LIBC_LLVM_LIBC
+ #    define _LIBCPP_PROVIDES_DEFAULT_RUNE_TABLE
+ #  endif
+ 
+diff --git a/libcxx/include/__locale_dir/locale_base_api.h b/libcxx/include/__locale_dir/locale_base_api.h
+index f973d95ef..8f1c2f19e 100644
+--- a/libcxx/include/__locale_dir/locale_base_api.h
++++ b/libcxx/include/__locale_dir/locale_base_api.h
+@@ -128,6 +128,8 @@
+ #    include <__locale_dir/support/newlib.h>
+ #  elif defined(_AIX)
+ #    include <__locale_dir/support/aix.h>
++#  elif defined(__lunar__)
++#    include <__locale_dir/support/linux.h>
+ #  else
+ 
+ // TODO: This is a temporary definition to bridge between the old way we defined the locale base API
+diff --git a/libcxx/include/__locale_dir/messages.h b/libcxx/include/__locale_dir/messages.h
+index 986a57d8b..284263614 100644
+--- a/libcxx/include/__locale_dir/messages.h
++++ b/libcxx/include/__locale_dir/messages.h
+@@ -22,7 +22,7 @@
+ 
+ #  if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+ // Most unix variants have catopen.  These are the specific ones that don't.
+-#    if !defined(__BIONIC__) && !_LIBCPP_LIBC_NEWLIB && !defined(__EMSCRIPTEN__)
++#    if !defined(__BIONIC__) && !_LIBCPP_LIBC_NEWLIB && !defined(__EMSCRIPTEN__) && !defined(__lunar__)
+ #      define _LIBCPP_HAS_CATOPEN 1
+ #      include <nl_types.h>
+ #    else
+diff --git a/libcxx/src/experimental/tzdb.cpp b/libcxx/src/experimental/tzdb.cpp
+index ca4aa1cab..7a680ee03 100644
+--- a/libcxx/src/experimental/tzdb.cpp
++++ b/libcxx/src/experimental/tzdb.cpp
+@@ -55,7 +55,7 @@ _LIBCPP_CLANG_DIAGNOSTIC_IGNORED("-Wmissing-prototypes")
+ // This function is weak so it can be overriden in the tests. The
+ // declaration is in the test header test/support/test_tzdb.h
+ [[gnu::weak]] string_view __libcpp_tzdb_directory() {
+-#if defined(__linux__)
++#if defined(__linux__) || defined(__lunar__)
+   return "/usr/share/zoneinfo/";
+ #else
+ #  error "unknown path to the IANA Time Zone Database"
+diff --git a/llvm/include/llvm/TargetParser/Triple.h b/llvm/include/llvm/TargetParser/Triple.h
+index d819c4975..50a5910e9 100644
+--- a/llvm/include/llvm/TargetParser/Triple.h
++++ b/llvm/include/llvm/TargetParser/Triple.h
+@@ -347,7 +347,8 @@ public:
+     Firmware,
+     QURT,
+     H2,
+-    LastOSType = H2
++    Lunar,
++    LastOSType = Lunar
+   };
+   enum EnvironmentType {
+     UnknownEnvironment,
+diff --git a/llvm/include/llvm/TargetParser/TripleName.def b/llvm/include/llvm/TargetParser/TripleName.def
+index bbc03b318..758dfaa49 100644
+--- a/llvm/include/llvm/TargetParser/TripleName.def
++++ b/llvm/include/llvm/TargetParser/TripleName.def
+@@ -81,6 +81,7 @@ TRIPLE_OS(ChipStar, "chipstar")
+ TRIPLE_OS(Firmware, "firmware")
+ TRIPLE_OS(QURT, "qurt")
+ TRIPLE_OS(H2, "h2")
++TRIPLE_OS(Lunar, "lunar")
+ 
+ #undef TRIPLE_OS
+ #undef TRIPLE_OS_ALIAS
+diff --git a/llvm/lib/MC/MCDwarf.cpp b/llvm/lib/MC/MCDwarf.cpp
+index 37ec324cd..e76535861 100644
+--- a/llvm/lib/MC/MCDwarf.cpp
++++ b/llvm/lib/MC/MCDwarf.cpp
+@@ -1921,6 +1921,8 @@ const MCSymbol &FrameEmitterImpl::EmitCIE(const MCDwarfFrameInfo &Frame) {
+     if (Frame.IsMTETaggedFrame)
+       Augmentation += "G";
+     Streamer.emitBytes(Augmentation);
++  } else if (Frame.IsSignalFrame) {
++    Streamer.emitInt8('S');
+   }
+   Streamer.emitInt8(0);
+ 
+@@ -2100,8 +2102,8 @@ struct CIEKey {
+   bool operator<(const CIEKey &Other) const {
+     assert(IsEH == Other.IsEH);
+     if (!IsEH)
+-      return std::make_tuple(RAReg, IsSimple) <
+-             std::make_tuple(Other.RAReg, Other.IsSimple);
++      return std::make_tuple(RAReg, IsSimple, IsSignalFrame) <
++             std::make_tuple(Other.RAReg, Other.IsSimple, Other.IsSignalFrame);
+ 
+     return std::make_tuple(PersonalityName(), PersonalityEncoding, LsdaEncoding,
+                            IsSignalFrame, IsSimple, RAReg, IsBKeyFrame,
+@@ -2115,7 +2117,8 @@ struct CIEKey {
+   bool operator==(const CIEKey &Other) const {
+     assert(IsEH == Other.IsEH);
+     if (!IsEH)
+-      return RAReg == Other.RAReg && IsSimple == Other.IsSimple;
++      return RAReg == Other.RAReg && IsSimple == Other.IsSimple &&
++             IsSignalFrame == Other.IsSignalFrame;
+ 
+     return Personality == Other.Personality &&
+            PersonalityEncoding == Other.PersonalityEncoding &&

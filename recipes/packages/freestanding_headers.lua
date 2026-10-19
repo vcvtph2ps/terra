@@ -1,11 +1,11 @@
 local freestanding_c_headers_source = Source {
     name = "freestanding_c_headers",
-    Git("https://github.com/osdev0/freestnd-c-hdrs.git", "4039f438fb1dc1064d8e98f70e1cf122f91b763b")
+    Git("https://github.com/osdev0/freestnd-c-hdrs.git", "d33711241b46ecb8f2ad33927fcefdcb3ac0162e")
 }
 
 local freestanding_cxx_headers_source = Source {
     name = "freestanding_cxx_headers",
-    Git("https://github.com/osdev0/freestnd-cxx-hdrs.git", "85096df5361a4d7ef2ce46947e555ec248c2858e")
+    Git("https://github.com/osdev0/freestnd-cxx-hdrs.git", "a6b351e0ab3e74e5789b01fa1447e4cd62373da7")
 }
 
 local freestanding_c_headers = Package {
@@ -13,8 +13,9 @@ local freestanding_c_headers = Package {
     version = "1.0",
     revision = 1,
     source = freestanding_c_headers_source,
+    dependencies = { "make" },
     build = [[ cp -rpf $SOURCE_DIR/* . ]],
-    install = [[ DESTDIR=$INSTALL_DIR PREFIX=$PREFIX make install ]]
+    install = [[ DESTDIR=$INSTALL_DIR make install PREFIX=$PREFIX ]]
 }
 
 local freestanding_cxx_headers = Package {
@@ -22,8 +23,9 @@ local freestanding_cxx_headers = Package {
     version = "1.0",
     revision = 1,
     source = freestanding_cxx_headers_source,
+    dependencies = { "make" },
     build = [[ cp -rpf $SOURCE_DIR/* . ]],
-    install = [[ DESTDIR=$INSTALL_DIR PREFIX=$PREFIX make install ]]
+    install = [[ DESTDIR=$INSTALL_DIR make install PREFIX=$PREFIX ]]
 }
 
 return {

@@ -30,32 +30,6 @@ local autoconf = Tool {
     ]]
 }
 
-local autoconf_2_69_source = Source {
-    name = "autoconf_2_69",
-    GnuArchive("autoconf", "2.69", "tar.gz", "954bd69b391edc12d6a4a51a2dd1476543da5c6bbf05a95b59dc0dd6fd4c2969"),
-}
-
--- binutils is a picky little bitch and wants EXACTLY 2.69
-local autoconf_2_69 = Tool {
-    name = "autoconf_2_69",
-    version = "2.69",
-    revision = 1,
-    source = autoconf_2_69_source,
-    dependencies = {
-        "m4", "make", "gcc", "perl",
-    },
-    configure = [[
-        $SOURCE_DIR/configure --prefix=$PREFIX
-    ]],
-    build = [[
-        make -j$PARALLELISM
-    ]],
-    install = [[
-        DESTDIR=$INSTALL_DIR make install
-    ]]
-}
-
-
 local automake_source = Source {
     name = "automake",
     GnuArchive("automake", AUTOMAKE_VERSION, "tar.gz", "07bd24ad08a64bc17250ce09ec56e921d6343903943e99ccf63bbf0705e34605"),
@@ -134,7 +108,6 @@ local autoconf_archive = Tool {
 
 return {
     autoconf = autoconf,
-    autoconf_2_69 = autoconf_2_69,
     automake = automake,
     libtool_source = libtool_source,
     libtool = libtool,

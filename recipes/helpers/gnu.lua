@@ -4,15 +4,12 @@ local DEFAULT_FORMAT_STRING = "{host}/{project}/{project}-{version}.{extension}"
 
 
 local PROJECT_MIRROR_OVERRIDE = {
-    ["gmp"] = "https://mirrors.evalyngoemer.com/gnu",
-    ["mpfr"] = "https://mirrors.evalyngoemer.com/gnu",
-    ["mpc"] = "https://mirrors.evalyngoemer.com/gnu",
-    ["gcc"] = "https://mirrors.evalyngoemer.com/gnu",
+
 }
 
 -- gnu :P
 local PROJECT_FORMAT_STRING_OVERRIDE = {
-    ["gcc"] = "{host}/{project}/{project}-{version}/{project}-{version}.{extension}",
+
 }
 
 --- Create an gnu archive source table.
