@@ -32,6 +32,7 @@ local kernel = Package {
             -use-color
 
         ninja -j$PARALLELISM
+        gzip -9 -c "$BUILD_DIR/output/kernel.elf" > "$BUILD_DIR/output/kernel.elf.gz"
     ]],
     install = [[
         fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR
@@ -53,12 +54,12 @@ local kernel = Package {
 
         llvm-objcopy \
             --input-target binary \
-            --redefine-sym _binary__chariot_build_output_kernel_elf_start=_binary_kernel_elf_start \
-            --redefine-sym _binary__chariot_build_output_kernel_elf_end=_binary_kernel_elf_end \
-            --redefine-sym _binary__chariot_build_output_kernel_elf_size=_binary_kernel_elf_size \
+            --redefine-sym _binary__chariot_build_output_kernel_elf_gz_start=_binary_kernel_elf_start \
+            --redefine-sym _binary__chariot_build_output_kernel_elf_gz_end=_binary_kernel_elf_end \
+            --redefine-sym _binary__chariot_build_output_kernel_elf_gz_size=_binary_kernel_elf_size \
             --output-target $OBJCOPY_OUTPUT \
             --binary-architecture $OBJCOPY_ARCH \
-            $BUILD_DIR/output/kernel.elf $INSTALL_DIR/kernel.o
+            $BUILD_DIR/output/kernel.elf.gz $INSTALL_DIR/kernel.o
     ]]
 }
 
