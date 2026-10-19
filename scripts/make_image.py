@@ -22,7 +22,7 @@ IMAGE_CHOICES = [
 
 ROOT_FILES: list[tuple[str, str | None]] = [
     ("lunar.elf", "/boot/lunar.elf"),
-    ("initramfs.rdk", "/boot/initramfs.rdk"),
+    ("initramfs.rdk.gz", "/boot/initramfs.rdk.gz"),
     ("kernel.ksym", "/boot/kernel.ksym"),
 ]
 
@@ -140,7 +140,7 @@ def build_image(
     root = Path(chariot_utils.dest_path())
     root.mkdir(parents=True, exist_ok=True)
 
-    initramfs = root.joinpath("initramfs.rdk")
+    initramfs = root.joinpath("initramfs.rdk.gz")
     make_initramfs(packages, arch, initramfs, build_type)
     make_image(image, root, dest.joinpath(f"{image}.img"), build_type)
 
@@ -160,8 +160,8 @@ if __name__ == "__main__":
         "-i",
         "--initramfs",
         type=Path,
-        default=Path("./initramfs.rdk"),
-        help="What initramfs to include in the image (default: ./initramfs.rdk)",
+        default=Path("./initramfs.rdk.gz"),
+        help="What initramfs to include in the image (default: ./initramfs.rdk.gz)",
     )
 
     parser.add_argument(
@@ -185,7 +185,7 @@ if __name__ == "__main__":
         shutil.rmtree(root)
     root.mkdir()
 
-    shutil.copy(str(args.initramfs), str(root.joinpath("initramfs.rdk")))
+    shutil.copy(str(args.initramfs), str(root.joinpath("initramfs.rdk.gz")))
 
     try:
         for image in args.images:

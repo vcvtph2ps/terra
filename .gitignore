@@ -11,5 +11,6 @@ dest/
 # Random build artifacts
 *.img
 *.rdk
+*.rdk.gz
 image_temp/
 initramfs_temp/

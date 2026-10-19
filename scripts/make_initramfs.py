@@ -2,6 +2,7 @@
 
 import argparse
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 from typing import Iterable
@@ -15,6 +16,7 @@ def make_initramfs(
     dest: Path,
     build_type: str = "debug",
     cleanup: bool = True,
+    compress: bool = True,
 ) -> None:
     work_dir = Path(chariot_utils.project_path(), "initramfs_temp")
 
@@ -55,6 +57,19 @@ def make_initramfs(
             sys.exit("Failed to invoke rdsk")
 
         shutil.move(str(work_dir / "initramfs.rdk"), str(dest))
+
+        if compress:
+            compressed = dest.with_name(dest.name + ".tmp")
+            with open(compressed, "wb") as out:
+                if (
+                    subprocess.run(
+                        ["gzip", "-6", "-c", str(dest)], stdout=out
+                    ).returncode
+                    != 0
+                ):
+                    compressed.unlink(missing_ok=True)
+                    sys.exit("Failed to compress initramfs")
+            compressed.replace(dest)
     finally:
         if cleanup:
             shutil.rmtree(work_dir, ignore_errors=True)
@@ -67,6 +82,12 @@ if __name__ == "__main__":
         "--noclean",
         action="store_true",
         help="Doesn't remove the initramfs temp dir after creation",
+    )
+
+    parser.add_argument(
+        "--no-compress",
+        action="store_true",
+        help="Don't compress the initramfs with gzip -9",
     )
 
     parser.add_argument(
@@ -104,4 +125,5 @@ if __name__ == "__main__":
         args.dest,
         args.buildtype,
         cleanup=not args.noclean,
+        compress=not args.no_compress,
     )
