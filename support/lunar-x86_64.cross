@@ -5,8 +5,8 @@ cpu = 'x86_64'
 endian = 'little'
 
 [binaries]
-c = 'clang'
-cpp = 'clang++'
+c = ['clang', '--target=x86_64-unknown-lunar']
+cpp = ['clang++', '--target=riscv64-unknown-lunar']
 c_ld = 'lld'
 ar = 'llvm-ar'
 strip = 'llvm-strip'

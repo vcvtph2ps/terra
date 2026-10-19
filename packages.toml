@@ -8,4 +8,9 @@ x86_64 = [
     "hello",
 ]
 
-riscv64 = []
+riscv64 = [
+    "mlibc",
+    "bash",
+    "meow",
+    "hello",
+]
