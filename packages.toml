@@ -6,6 +6,9 @@ x86_64 = [
     "bash",
     "meow",
     "hello",
+    "libcxx",
+    "basic-compiler-rt",
+    "hellocxx"
 ]
 
 riscv64 = [

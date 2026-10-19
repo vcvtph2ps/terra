@@ -3,7 +3,7 @@ local mlibc_headers = require("recipes.packages.mlibc_headers")
 local target = require("recipes.helpers.target")
 
 local package = Package {
-    name = "compiler-rt",
+    name = "basic-compiler-rt",
     version = "1.0",
     revision = 1,
     source = llvm.source,

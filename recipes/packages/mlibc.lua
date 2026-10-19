@@ -5,7 +5,7 @@ local mlibc_source = require("recipes.sources.mlibc")
 local mlibc_headers = require("recipes.packages.mlibc_headers")
 local freestanding_headers = require("recipes.packages.freestanding_headers")
 local target = require("recipes.helpers.target")
-local compiler_rt = require("recipes.packages.compiler-rt")
+local basic_compiler_rt = require("recipes.packages.basic-compiler-rt")
 
 local mlibc = Package {
     name = "mlibc",
@@ -16,14 +16,15 @@ local mlibc = Package {
         "meson", "git", "cmake",
         mlibc_headers,
         llvm.tool,
-        compiler_rt,
+        basic_compiler_rt,
+
         freestanding_headers.freestanding_cxx_headers.package,
         pkgconf,
 
         support_source,
     },
     runtime_dependencies = {
-        compiler_rt,
+        basic_compiler_rt,
     },
     env = {
         CROSS_FILE = target.crossFiles[chariot.target_arch],
