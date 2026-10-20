@@ -79,34 +79,35 @@ def parse_args() -> Config:
         "--arch",
         choices=["x86_64", "riscv64"],
         default="x86_64",
+        help="(default: x86_64)",
     )
 
     parser.add_argument(
-        "--accel",
-        choices=["tcg", "kvm"],
-        default="tcg",
+        "--accel", choices=["tcg", "kvm"], default="tcg", help="(default: tcg)"
     )
 
     parser.add_argument(
         "--bootloader",
         choices=["tartarus", "limine"],
         default="tartarus",
+        help="(default: tartarus)",
     )
 
     parser.add_argument(
         "--cores",
         type=int,
         default=2,
+        help="The amount of cores to pass to the vm (default: 2)",
     )
 
     parser.add_argument(
-        "--pause",
-        action="store_true",
+        "--pause", action="store_true", help="Pause the vm for debugging"
     )
 
     parser.add_argument(
         "--uefi",
         action="store_true",
+        help="Boot with UEFI firmware",
     )
 
     parser.add_argument(
@@ -114,6 +115,7 @@ def parse_args() -> Config:
         "--gfx",
         dest="graphics",
         action="store_true",
+        help="Provide a display to qemu",
     )
 
     parser.add_argument(
@@ -121,6 +123,7 @@ def parse_args() -> Config:
         dest="apicState",
         action="store_const",
         const=xApicState.NO_X2APIC,
+        help="Disable x2APIC",
     )
 
     parser.add_argument(
@@ -128,11 +131,13 @@ def parse_args() -> Config:
         dest="apicState",
         action="store_const",
         const=xApicState.X2APIC_ONLY,
+        help="Disable xAPIC (TCG-only with [custom patched qemu](https://gist.github.com/Mintsuki/25129025509e7f8e30521c1f7940aad4))",
     )
 
     parser.add_argument(
         "--acpi",
         action="store_true",
+        help="Enable ACPI support for platforms that use device trees",
     )
 
     accel = parser.add_mutually_exclusive_group()
@@ -142,37 +147,26 @@ def parse_args() -> Config:
         dest="accel",
         action="store_const",
         const="kvm",
+        help="Alias of --accel kvm",
     )
-
-    accel.add_argument(
-        "--tcg",
-        dest="accel",
-        action="store_const",
-        const="tcg",
-    )
-
     parser.add_argument(
         "--limine",
         dest="bootloader",
         action="store_const",
         const="limine",
-    )
-
-    parser.add_argument(
-        "--up",
-        dest="cores",
-        action="store_const",
-        const=1,
+        help="Alias of --bootloader limine",
     )
 
     parser.add_argument(
         "--riscv64",
         action="store_true",
+        help="Alias of --arch riscv64",
     )
 
     parser.add_argument(
         "--release",
         action="store_true",
+        help="Use release builds of the kernel instead of debug",
     )
 
     args = parser.parse_args()
@@ -296,7 +290,7 @@ def qemu_command(cfg: Config, drive_file: str) -> list[str]:
         else:
             qemu_cmd += [
                 "-M",
-                "q35,accel=tcg,smm=off",
+                "q35,accel=tcg,smm=off",  # i8042=off
                 "-cpu",
                 f"max,lkgs=on,fred=on,invtsc=on,x2apic={xapic_option},la57=on",
             ]
