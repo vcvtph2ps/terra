@@ -1,0 +1,3 @@
+#!/bin/bash
+
+clang++ --target=x86_64-unknown-lunar -march=x86-64 -mabi=sysv --sysroot=$SYSROOT_DIR "$@"

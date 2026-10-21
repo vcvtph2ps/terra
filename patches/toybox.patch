@@ -1,0 +1,917 @@
+diff --git a/kconfig/Makefile b/kconfig/Makefile
+index 1331434c..00a5019c 100644
+--- a/kconfig/Makefile
++++ b/kconfig/Makefile
+@@ -2,6 +2,7 @@
+ # Kernel configuration targets
+ # These targets are used from top-level makefile
+ 
++HOSTCC ?= cc
+ KCONFIG_TOP = Config.in
+ KCONFIG_PROJECT = ToyBox
+ obj = ./kconfig
+@@ -35,12 +36,12 @@ SHIPPED = kconfig/zconf.tab.c kconfig/lex.zconf.c kconfig/zconf.hash.c
+ gen_config.h: .config
+ 
+ kconfig/mconf: $(SHIPPED)
+-	cc -o $@ kconfig/mconf.c kconfig/zconf.tab.c \
++	$(HOSTCC) -o $@ kconfig/mconf.c kconfig/zconf.tab.c \
+ 		kconfig/lxdialog/*.c -lcurses -DCURSES_LOC="<ncurses.h>" \
+ 		-DKBUILD_NO_NLS=1 -DPROJECT_NAME=\"$(KCONFIG_PROJECT)\"
+ 
+ kconfig/conf: $(SHIPPED)
+-	cc -o $@ kconfig/conf.c kconfig/zconf.tab.c -DKBUILD_NO_NLS=1 \
++	$(HOSTCC) -o $@ kconfig/conf.c kconfig/zconf.tab.c -DKBUILD_NO_NLS=1 \
+ 		-DPROJECT_NAME=\"$(KCONFIG_PROJECT)\"
+ 
+ clean::
+diff --git a/lib/portability.c b/lib/portability.c
+index b048dca1..0dedda4b 100644
+--- a/lib/portability.c
++++ b/lib/portability.c
+@@ -54,7 +54,12 @@ void xgetrandom(void *buf, unsigned buflen)
+ // Get list of mounted filesystems, including stat and statvfs info.
+ // Returns a reversed list, which is good for finding overmounts and such.
+ 
+-#if defined(__APPLE__) || defined(__IsBSD__)
++#ifdef __lunar__
++struct mtab_list *xgetmountlist(char *path)
++{
++  error_exit("struct statfs not currently defined by mlibc");
++}
++#elif defined(__APPLE__) || defined(__IsBSD__)
+ 
+ #include <sys/mount.h>
+ 
+@@ -217,6 +222,23 @@ int xnotify_wait(struct xnotify *not, char **path)
+   }
+ }
+ 
++#elif defined(__lunar__)
++
++struct xnotify *xnotify_init(int max)
++{
++  error_exit("kqueue not yet implemented in Lunar");
++}
++
++int xnotify_add(struct xnotify *not, int fd, char *path)
++{
++  error_exit("kqueue not yet implemented in Lunar");
++}
++
++int xnotify_wait(struct xnotify *not, char **path)
++{
++  error_exit("kqueue not yet implemented in Lunar");
++}
++
+ #elif defined(__linux__)
+ 
+ #include <sys/inotify.h>
+@@ -274,7 +296,7 @@ ssize_t xattr_get(const char *path, const char *name, void *value, size_t size)
+ 
+ ssize_t xattr_lget(const char *path, const char *name, void *value, size_t size)
+ {
+-  return getxattr(path, name, value, size, 0, XATTR_NOFOLLOW);
++  return getxattr(path, name, value, size, 0, xattr_nofollow);
+ }
+ 
+ ssize_t xattr_fget(int fd, const char *name, void *value, size_t size)
+@@ -289,7 +311,7 @@ ssize_t xattr_list(const char *path, char *list, size_t size)
+ 
+ ssize_t xattr_llist(const char *path, char *list, size_t size)
+ {
+-  return listxattr(path, list, size, XATTR_NOFOLLOW);
++  return listxattr(path, list, size, xattr_nofollow);
+ }
+ 
+ ssize_t xattr_flist(int fd, char *list, size_t size)
+@@ -306,7 +328,7 @@ ssize_t xattr_set(const char* path, const char* name,
+ ssize_t xattr_lset(const char* path, const char* name,
+                    const void* value, size_t size, int flags)
+ {
+-  return setxattr(path, name, value, size, 0, flags | XATTR_NOFOLLOW);
++  return setxattr(path, name, value, size, 0, flags | xattr_nofollow);
+ }
+ 
+ ssize_t xattr_fset(int fd, const char* name,
+@@ -365,9 +387,18 @@ ssize_t xattr_fset(int fd, const char* name,
+   return fsetxattr(fd, name, value, size, flags);
+ }
+ 
+-#elif defined(__IsBSD__)
+-#warning no xattr support in BSD
+-// No xattr for bsd
++#elif defined(__IsBSD__) || defined(__lunar__)
++#warning no xattr support in BSD or Lunar
++// No xattr for bsd or lunar
++ssize_t xattr_get(const char *p, const char *n, void *v, size_t s) { return -1; }
++ssize_t xattr_lget(const char *p, const char *n, void *v, size_t s) { return -1; }
++ssize_t xattr_fget(int f, const char *n, void *v, size_t s) { return -1; }
++ssize_t xattr_list(const char *p, char *l, size_t s) { return -1; }
++ssize_t xattr_llist(const char *p, char *l, size_t s) { return -1; }
++ssize_t xattr_flist(int f, char *l, size_t s) { return -1; }
++ssize_t xattr_set(const char* p, const char* n, const void* v, size_t s, int f) { return -1; }
++ssize_t xattr_lset(const char* p, const char* n, const void* v, size_t s, int f) { return -1; }
++ssize_t xattr_fset(int f, const char* n, const void* v, size_t s, int l) { return -1; }
+ #else
+ #error
+ #endif
+@@ -515,13 +546,18 @@ char *num_to_sig(int sig)
+   return NULL;
+ }
+ 
++// major and minor defined here
++#if defined(__lunar__)
++#include <sys/sysmacros.h>
++#endif
++
+ int dev_minor(int dev)
+ {
+ #if defined(__linux__)
+   return ((dev&0xfff00000)>>12)|(dev&0xff);
+ #elif defined(__APPLE__)
+   return dev&0xffffff;
+-#elif defined(__IsBSD__)
++#elif defined(__IsBSD__) || defined(__lunar__)
+   return minor(dev);
+ #else
+ #error
+@@ -535,7 +571,7 @@ int dev_major(int dev)
+   return (dev&0xfff00)>>8;
+ #elif defined(__APPLE__)
+   return (dev>>24)&0xff;
+-#elif defined(__IsBSD__)
++#elif defined(__IsBSD__) || defined(__lunar__)
+   return major(dev);
+ #else
+ #error
+@@ -549,7 +585,7 @@ int dev_makedev(int major, int minor)
+   return (minor&0xff)|((major&0xfff)<<8)|((minor&0xfff00)<<12);
+ #elif defined(__APPLE__)
+   return (minor&0xffffff)|((major&0xff)<<24);
+-#elif defined(__IsBSD__)
++#elif defined(__IsBSD__) || defined(__lunar__)
+   return makedev(major, minor);
+ #else
+ #error
+@@ -557,12 +593,18 @@ int dev_makedev(int major, int minor)
+ #endif
+ }
+ 
++#ifdef __lunar__
++char *fs_type_name(void *statfs)
++#else
+ char *fs_type_name(struct statfs *statfs)
++#endif
+ {
+ #if defined(__APPLE__) || defined(__IsBSD__)
+   // macOS has an `f_type` field, but assigns values dynamically as filesystems
+   // are registered. They do give you the name directly though, so use that.
+   return statfs->f_fstypename;
++#elif defined(__lunar__)
++  error_exit("struct statfs not currently defined by mlibc");
+ #elif defined(__linux__)
+   char *s = NULL;
+   struct {unsigned num; char *name;} nn[] = {
+diff --git a/lib/portability.h b/lib/portability.h
+index fa497c19..710e4e03 100644
+--- a/lib/portability.h
++++ b/lib/portability.h
+@@ -8,6 +8,11 @@
+ // This must come before we #include any system header file to take effect!
+ #define _FILE_OFFSET_BITS 64
+ 
++#ifdef __lunar__
++#include <stdio.h>
++#include <stdlib.h>
++#endif
++
+ #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+ #define __IsBSD__
+ #endif
+@@ -171,7 +176,9 @@ void *memmem(const void *haystack, size_t haystack_length,
+ #endif
+ 
+ // Linux headers not listed by POSIX or LSB
++#ifndef __lunar__
+ #include <sys/mount.h>
++#endif
+ #ifdef __linux__
+ #include <sys/statfs.h>
+ #include <sys/swap.h>
+@@ -196,10 +203,12 @@ void *memmem(const void *haystack, size_t haystack_length,
+ int personality(int);
+ #endif
+ 
+-#if defined(__APPLE__) || defined(__linux__)
++#if defined(__APPLE__) || defined(__linux__) || defined(__lunar__)
+ // Linux and macOS has both have getxattr and friends in <sys/xattr.h>, but
+ // they aren't compatible.
++#ifndef __lunar__
+ #include <sys/xattr.h>
++#endif
+ ssize_t xattr_get(const char *, const char *, void *, size_t);
+ ssize_t xattr_lget(const char *, const char *, void *, size_t);
+ ssize_t xattr_fget(int fd, const char *, void *, size_t);
+@@ -223,6 +232,15 @@ int posix_fallocate(int, off_t, off_t);
+ #if defined(__APPLE__) || defined(__IsBSD__)
+ static inline long statfs_bsize(struct statfs *sf) { return sf->f_iosize; }
+ static inline long statfs_frsize(struct statfs *sf) { return sf->f_bsize; }
++#elif defined(__lunar__)
++static inline long statfs_bsize(void *sf) {
++  fputs("statfs not currently implemented by mlibc\nstruct statfs nut currently defined by mlibc", stderr);
++  exit(-1);
++}
++static inline long statfs_frsize(void *sf) {
++  fputs("statfs not currently implemented by mlibc\nstruct statfs nut currently defined by mlibc", stderr);
++  exit(-1);
++}
+ #else
+ static inline long statfs_bsize(struct statfs *sf) { return sf->f_bsize; }
+ static inline long statfs_frsize(struct statfs *sf) { return sf->f_frsize; }
+@@ -367,7 +385,11 @@ int dev_minor(int dev);
+ int dev_major(int dev);
+ int dev_makedev(int major, int minor);
+ 
++#ifdef __lunar__
++char *fs_type_name(void* statfs);
++#else
+ char *fs_type_name(struct statfs *statfs);
++#endif
+ 
+ int get_block_device_size(int fd, unsigned long long *size);
+ int rename_exchange(char *file1, char *file2);
+@@ -390,4 +412,6 @@ int timer_create_wrap(clockid_t c, struct sigevent *se, timer_t *t);
+ int timer_settime_wrap(timer_t t, int flags, struct itimerspec *val,
+   struct itimerspec *old);
+ #define timer_settime(...) timer_settime_wrap(__VA_ARGS__)
++#elif defined(__lunar__)
++#define syscall(...) (-1)
+ #endif
+diff --git a/lib/tty.c b/lib/tty.c
+index 7c249fcc..1f5cfb67 100644
+--- a/lib/tty.c
++++ b/lib/tty.c
+@@ -100,10 +100,7 @@ unsigned bps2cfspeed(unsigned baud)
+ 
+ void xsetspeed(struct termios *tio, int bps)
+ {
+-  int i = bps2cfspeed(bps);
+-
+-  if (!i) error_exit("unknown speed: %d", bps);
+-  cfsetspeed(tio, i);
++  error_exit("cfsetspeed not currently supported by mlibc");
+ }
+ 
+ // Reset terminal to known state, saving copy of old state if old != NULL.
+@@ -134,7 +131,7 @@ int set_terminal(int fd, int raw, int speed, struct termios *old)
+     // line kill, escape control characters with ^, erase line char at a time
+     // "extended" behavior: ctrl-V quotes next char, ctrl-R reprints unread line
+     // ctrl-W erases word
+-    tio.c_lflag |= ISIG|ICANON|ECHO|ECHOE|ECHOK|ECHOCTL|ECHOKE|IEXTEN;
++    tio.c_lflag |= ISIG|ICANON|ECHO|ECHOE|ECHOK|ECHOCTL|IEXTEN;
+   }
+ 
+   return tcsetattr(fd, TCSAFLUSH, &tio);
+diff --git a/lib/xwrap.c b/lib/xwrap.c
+index 3cd1503c..c02faf83 100644
+--- a/lib/xwrap.c
++++ b/lib/xwrap.c
+@@ -202,7 +202,8 @@ void xvdaemon(void)
+   xopen_stdio("/dev/null", O_RDWR);
+   dup2(0, 1);
+   if (-1 != (fd = open("/dev/tty", O_RDONLY))) {
+-    ioctl(fd, TIOCNOTTY);
++    error_exit("TIOCNOTTY not currently defined by mlibc");
++    //ioctl(fd, TIOCNOTTY);
+     close(fd);
+   }
+   dup2(0, 2);
+diff --git a/scripts/genconfig.sh b/scripts/genconfig.sh
+index ee05d339..4ceccc5e 100755
+--- a/scripts/genconfig.sh
++++ b/scripts/genconfig.sh
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/bin/env bash
+ 
+ # This has to be a separate file from scripts/make.sh so it can be called
+ # before menuconfig. (It's called again from scripts/make.sh just to be sure.)
+diff --git a/scripts/make.sh b/scripts/make.sh
+index 5a23bae4..c23b3a93 100755
+--- a/scripts/make.sh
++++ b/scripts/make.sh
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/bin/env bash
+ 
+ # Grab default values for $CFLAGS and such.
+ set -o pipefail
+diff --git a/toys.h b/toys.h
+index b951c314..8bf4bf2e 100644
+--- a/toys.h
++++ b/toys.h
+@@ -65,7 +65,6 @@
+ 
+ // Non-posix headers
+ #include <sys/ioctl.h>
+-#include <sys/syscall.h>
+ #include <sys/ttydefaults.h>
+ 
+ #include "lib/lib.h"
+diff --git a/toys/net/host.c b/toys/net/host.c
+index 6ead0286..47a7e6bc 100644
+--- a/toys/net/host.c
++++ b/toys/net/host.c
+@@ -72,6 +72,8 @@ static void get_nsname(char **pline, long len)
+ 
+ void host_main(void)
+ {
++  error_exit("res_mkquery not currently supported by mlibc");
++
+   int verbose = FLAG(a)||FLAG(v), type, abuf_len = 65536, //Largest TCP response
+       i, j, sec, rcode, qlen, alen QUIET, pllen = 0, t2len = 2048;
+   unsigned count, ttl;
+@@ -105,7 +107,7 @@ void host_main(void)
+     }
+     if (i == ARRAY_LEN(rrt)) error_exit("bad -t: %s", TT.t);
+   }
+-  qlen = res_mkquery(0, name, 1, type, 0, 0, 0, t2, t2len);
++//  qlen = res_mkquery(0, name, 1, type, 0, 0, 0, t2, t2len);
+   if (qlen<0) error_exit("bad NAME: %s", name);
+ 
+   // Grab nameservers
+diff --git a/toys/net/ifconfig.c b/toys/net/ifconfig.c
+index e2155082..0bab7359 100644
+--- a/toys/net/ifconfig.c
++++ b/toys/net/ifconfig.c
+@@ -125,10 +125,10 @@ static void display_ifconfig(char *name, int always, unsigned long long val[])
+     unsigned uu = 0;
+     int len;
+ 
+-    ioctl(TT.sockfd, SIOCGIFADDR, &ifre);
++//    ioctl(TT.sockfd, SIOCGIFADDR, &ifre);
+     len = printf("%*s %s", -9, name, inet_ntoa(si->sin_addr));
+-    if (!ioctl(TT.sockfd, SIOCGIFNETMASK, &ifre))
+-      uu = htonl(*(unsigned *)&(si->sin_addr));
++//    if (!ioctl(TT.sockfd, SIOCGIFNETMASK, &ifre))
++//      uu = htonl(*(unsigned *)&(si->sin_addr));
+     for (i = 0; uu; i++) uu <<= 1;
+     len += printf("/%d", i);
+     printf("%*c", 29-len, ' ');
+@@ -136,7 +136,7 @@ static void display_ifconfig(char *name, int always, unsigned long long val[])
+ 
+   // Query hardware type and hardware address.
+   // Not xioctl because you don't have permission for this on Android.
+-  ioctl(TT.sockfd, SIOCGIFHWADDR, &ifre);
++//  ioctl(TT.sockfd, SIOCGIFHWADDR, &ifre);
+ 
+   if (FLAG(S))
+     for (i=0; i<6; i++) printf(":%02x"+!i, ifre.ifr_hwaddr.sa_data[i]);
+@@ -158,7 +158,7 @@ static void display_ifconfig(char *name, int always, unsigned long long val[])
+ 
+   ifre.ifr_addr.sa_family = AF_INET;
+   memset(&ifre.ifr_addr, 0, sizeof(ifre.ifr_addr));
+-  ioctl(TT.sockfd, SIOCGIFADDR, &ifre);
++//  ioctl(TT.sockfd, SIOCGIFADDR, &ifre);
+   pp = (char *)&ifre.ifr_addr;
+   for (i = 0; i<sizeof(ifre.ifr_addr); i++) if (pp[i]) break;
+ 
+@@ -169,9 +169,9 @@ static void display_ifconfig(char *name, int always, unsigned long long val[])
+       int flag, ioctl;
+     } addr[] = {
+       {"addr", 0, 0},
+-      {"P-t-P", IFF_POINTOPOINT, SIOCGIFDSTADDR},
+-      {"Bcast", IFF_BROADCAST, SIOCGIFBRDADDR},
+-      {"Mask", 0, SIOCGIFNETMASK}
++//      {"P-t-P", IFF_POINTOPOINT, SIOCGIFDSTADDR},
++//      {"Bcast", IFF_BROADCAST, SIOCGIFBRDADDR},
++//      {"Mask", 0, SIOCGIFNETMASK}
+     };
+ 
+     // TODO: can this be ipv6? Why are we checking here when ipv6 source later?
+@@ -255,7 +255,7 @@ static void display_ifconfig(char *name, int always, unsigned long long val[])
+ 
+   if (ioctl(TT.sockfd, SIOCGIFMTU, &ifre) < 0) ifre.ifr_mtu = 0;
+   xprintf(" MTU:%d", ifre.ifr_mtu);
+-  if (ioctl(TT.sockfd, SIOCGIFMETRIC, &ifre) < 0) ifre.ifr_metric = 0;
++//  if (ioctl(TT.sockfd, SIOCGIFMETRIC, &ifre) < 0) ifre.ifr_metric = 0;
+   if (!ifre.ifr_metric) ifre.ifr_metric = 1;
+   xprintf("  Metric:%d", ifre.ifr_metric);
+ 
+@@ -270,8 +270,8 @@ static void display_ifconfig(char *name, int always, unsigned long long val[])
+     int i;
+ 
+     // Query txqueuelen
+-    if (ioctl(TT.sockfd, SIOCGIFTXQLEN, &ifre) >= 0) val[16] = ifre.ifr_qlen;
+-    else val[16] = -1;
++//    if (ioctl(TT.sockfd, SIOCGIFTXQLEN, &ifre) >= 0) val[16] = ifre.ifr_qlen;
++//    else val[16] = -1;
+ 
+     for (i = 0; i<sizeof(order); i++) {
+       int j = order[i];
+@@ -282,8 +282,8 @@ static void display_ifconfig(char *name, int always, unsigned long long val[])
+   }
+   xputc('\n');
+ 
+-  if(!ioctl(TT.sockfd, SIOCGIFMAP, &ifre) && (ifre.ifr_map.irq ||
+-      ifre.ifr_map.mem_start || ifre.ifr_map.dma || ifre.ifr_map.base_addr))
++//  if(!ioctl(TT.sockfd, SIOCGIFMAP, &ifre) && (ifre.ifr_map.irq ||
++//      ifre.ifr_map.mem_start || ifre.ifr_map.dma || ifre.ifr_map.base_addr))
+   {
+     xprintf("%10c", ' ');
+     if(ifre.ifr_map.irq) xprintf("Interrupt:%d ", ifre.ifr_map.irq);
+@@ -373,6 +373,12 @@ static void show_iface(char *iface_name)
+ 
+ void ifconfig_main(void)
+ {
++  error_exit("SIOCGIFMAP, SIOCDIFADDR, SIOCSIFHWADDR, SIOCSIFMAP,\n"
++      "SIOCSIFTXQLEN, SIOCSIFMETRIC, SIOCSIFNAME, SIOCSIFNETMASK,\n"
++      "SIOCSIFBRDADDR, SIOCSIFDSTADDR, SIOCSIFADDR, SIOCGIFTXQLEN,\n"
++      "SIOCGIFMETRIC, SIOCGIFBRDADDR, SIOCGIFDSTADDR, SIOCGIFHWADDR,\n"
++      "SIOCGIFNETMASK, SIOCGIFADDR not currently defined by mlibc");
++
+   char **argv = toys.optargs;
+   struct ifreq ifre;
+   int i;
+@@ -394,26 +400,26 @@ void ifconfig_main(void)
+       char *name;
+       int on, off; // set, clear
+     } try[] = {
+-      {0, IFF_UP|IFF_RUNNING, SIOCSIFADDR},
++//      {0, IFF_UP|IFF_RUNNING, SIOCSIFADDR},
+       {"up", IFF_UP|IFF_RUNNING, 0},
+       {"down", 0, IFF_UP},
+       {"arp", 0, IFF_NOARP},
+       {"promisc", IFF_PROMISC, 0},
+       {"allmulti", IFF_ALLMULTI, 0},
+       {"multicast", IFF_MULTICAST, 0},
+-      {"pointopoint", IFF_POINTOPOINT, SIOCSIFDSTADDR},
+-      {"broadcast", IFF_BROADCAST, SIOCSIFBRDADDR},
+-      {"netmask", 0, SIOCSIFNETMASK},
+-      {"dstaddr", 0, SIOCSIFDSTADDR},
++//      {"pointopoint", IFF_POINTOPOINT, SIOCSIFDSTADDR},
++//      {"broadcast", IFF_BROADCAST, SIOCSIFBRDADDR},
++//      {"netmask", 0, SIOCSIFNETMASK},
++//      {"dstaddr", 0, SIOCSIFDSTADDR},
+       {"mtu", IFREQ_OFFSZ(ifr_mtu), SIOCSIFMTU},
+-      {"rename", IFREQ_OFFSZ(ifr_newname), SIOCSIFNAME},
++//      {"rename", IFREQ_OFFSZ(ifr_newname), SIOCSIFNAME},
+       {"keepalive", IFREQ_OFFSZ(ifr_data), SIOCDEVPRIVATE}, // SIOCSKEEPALIVE
+       {"outfill", IFREQ_OFFSZ(ifr_data), SIOCDEVPRIVATE+2}, // SIOCSOUTFILL
+-      {"metric", IFREQ_OFFSZ(ifr_metric), SIOCSIFMETRIC},
+-      {"txqueuelen", IFREQ_OFFSZ(ifr_qlen), SIOCSIFTXQLEN},
+-      {"mem_start", IFREQ_OFFSZ(ifr_map.mem_start), SIOCSIFMAP},
+-      {"io_addr", IFREQ_OFFSZ(ifr_map.base_addr), SIOCSIFMAP},
+-      {"irq", IFREQ_OFFSZ(ifr_map.irq), SIOCSIFMAP},
++//      {"metric", IFREQ_OFFSZ(ifr_metric), SIOCSIFMETRIC},
++//      {"txqueuelen", IFREQ_OFFSZ(ifr_qlen), SIOCSIFTXQLEN},
++//      {"mem_start", IFREQ_OFFSZ(ifr_map.mem_start), SIOCSIFMAP},
++//      {"io_addr", IFREQ_OFFSZ(ifr_map.base_addr), SIOCSIFMAP},
++//      {"irq", IFREQ_OFFSZ(ifr_map.irq), SIOCSIFMAP},
+       {"inet", 0, 0},
+       {"inet6", 0, 0}
+     };
+@@ -466,7 +472,8 @@ void ifconfig_main(void)
+         fd = xopen(toybuf, O_RDWR);
+         xwrite(fd, *argv, strlen(*argv));
+         close(fd);
+-      } else xioctl(TT.sockfd, SIOCSIFHWADDR, &ifre);
++//      } else xioctl(TT.sockfd, SIOCSIFHWADDR, &ifre);
++        }
+       continue;
+ 
+     // Add/remove ipv6 address to interface
+@@ -486,7 +493,7 @@ void ifconfig_main(void)
+       xioctl(fd6, SIOCGIFINDEX, &ifre);
+       ifre6.index = ifre.ifr_ifindex;
+       ifre6.prefix = plen;
+-      xioctl(fd6, **(argv++)=='a' ? SIOCSIFADDR : SIOCDIFADDR, &ifre6);
++//      xioctl(fd6, **(argv++)=='a' ? SIOCSIFADDR : SIOCDIFADDR, &ifre6);
+ 
+       close(fd6);
+       continue;
+@@ -511,14 +518,14 @@ void ifconfig_main(void)
+             void *dest = ((on = -on)>>16)+(char *)&ifre, *src;
+ 
+             // If we're about to set mem_start/io_addr/irq, get other 2 first
+-            if (off == SIOCSIFMAP) xioctl(TT.sockfd, SIOCGIFMAP, &ifre);
+-            if (off == SIOCSIFNAME) xstrncpy(dest, *argv, on&0xffff);
+-            else {
+-              long long ll = strtoul(*argv, 0, 0);
+-
+-              src = ((char *)&ll)+IS_BIG_ENDIAN*(sizeof(long long)-(on&15));
+-              memcpy(dest, src, on&15);
+-	    }
++//            if (off == SIOCSIFMAP) xioctl(TT.sockfd, SIOCGIFMAP, &ifre);
++//            if (off == SIOCSIFNAME) xstrncpy(dest, *argv, on&0xffff);
++//            else {
++//              long long ll = strtoul(*argv, 0, 0);
++//
++//              src = ((char *)&ll)+IS_BIG_ENDIAN*(sizeof(long long)-(on&15));
++//              memcpy(dest, src, on&15);
++//	    }
+             xioctl(TT.sockfd, off, &ifre);
+             break;
+           } else {
+@@ -536,7 +543,7 @@ void ifconfig_main(void)
+               // sin_addr probably isn't unaligned, but just in case...
+               mask = htonl((~0)<<(32-mask));
+               memcpy(&si->sin_addr, &mask, 4);
+-              xioctl(TT.sockfd, SIOCSIFNETMASK, &ifre);
++//              xioctl(TT.sockfd, SIOCSIFNETMASK, &ifre);
+             }
+           }
+         }
+diff --git a/toys/net/netstat.c b/toys/net/netstat.c
+index fe012c31..595d484f 100644
+--- a/toys/net/netstat.c
++++ b/toys/net/netstat.c
+@@ -276,9 +276,11 @@ static int scan_pids(struct dirtree *node)
+ // extract inet4 route info from /proc/net/route file and display it.
+ static void display_routes(void)
+ {
++  error_exit("RTF_REINSTATE, RTF_DYNAMIC, RTF_MODIFIED not currently defined by mlibc");
++
+   static const char flagchars[] = "GHRDMDAC";
+   static const unsigned flagarray[] = {
+-    RTF_GATEWAY, RTF_HOST, RTF_REINSTATE, RTF_DYNAMIC, RTF_MODIFIED
++    RTF_GATEWAY, RTF_HOST//, RTF_REINSTATE, RTF_DYNAMIC, RTF_MODIFIED
+   };
+   unsigned dest, gate, mask;
+   int flags, ref, use, metric, mss, win, irtt;
+diff --git a/toys/other/free.c b/toys/other/free.c
+index 6be1cdca..147b8ea9 100644
+--- a/toys/other/free.c
++++ b/toys/other/free.c
+@@ -40,19 +40,21 @@ static char *convert(unsigned long d)
+ 
+ void free_main(void)
+ {
+-  struct sysinfo in;
++  error_exit("sysinfo not currently supported by Lunar\nstruct sysinfo not currently defined by Lunar");
+ 
+-  sysinfo(&in);
+-  TT.units = in.mem_unit ? in.mem_unit : 1;
++//  struct sysinfo in;
++//
++//  sysinfo(&in);
++//  TT.units = in.mem_unit ? in.mem_unit : 1;
+   while ((toys.optflags&(FLAG_h-1)) && !(toys.optflags&(1<<TT.bits))) TT.bits++;
+   TT.bits *= 10;
+   TT.buf = toybuf;
+ 
+-  xprintf("\t\ttotal        used        free      shared     buffers\n"
+-    "Mem:%17s%12s%12s%12s%12s\n-/+ buffers/cache:%15s%12s\n"
+-    "Swap:%16s%12s%12s\n", convert(in.totalram),
+-    convert(in.totalram-in.freeram), convert(in.freeram), convert(in.sharedram),
+-    convert(in.bufferram), convert(in.totalram - in.freeram - in.bufferram),
+-    convert(in.freeram + in.bufferram), convert(in.totalswap),
+-    convert(in.totalswap - in.freeswap), convert(in.freeswap));
++//  xprintf("\t\ttotal        used        free      shared     buffers\n"
++//    "Mem:%17s%12s%12s%12s%12s\n-/+ buffers/cache:%15s%12s\n"
++//    "Swap:%16s%12s%12s\n", convert(in.totalram),
++//    convert(in.totalram-in.freeram), convert(in.freeram), convert(in.sharedram),
++//    convert(in.bufferram), convert(in.totalram - in.freeram - in.bufferram),
++//    convert(in.freeram + in.bufferram), convert(in.totalswap),
++//    convert(in.totalswap - in.freeswap), convert(in.freeswap));
+ }
+diff --git a/toys/other/login.c b/toys/other/login.c
+index 62c1293e..fc536c4e 100644
+--- a/toys/other/login.c
++++ b/toys/other/login.c
+@@ -37,6 +37,8 @@ static void login_timeout_handler(int sig __attribute__((unused)))
+ 
+ void login_main(void)
+ {
++  error_exit("crypt not currently supported by mlibc");
++
+   int count, tty = tty_fd();
+   char *username, *pass = 0, *ss;
+   struct passwd *pwd = 0;
+@@ -89,11 +91,11 @@ void login_main(void)
+ 
+     // Verify password. (Prompt for password _before_ checking disable state.)
+     if (!read_password(toybuf, sizeof(toybuf), "Password: ")) {
+-      int x = pass && (ss = crypt(toybuf, pass)) && !strcmp(pass, ss);
++//      int x = pass && (ss = crypt(toybuf, pass)) && !strcmp(pass, ss);
+ 
+       // password go bye-bye now.
+       memset(toybuf, 0, sizeof(toybuf));
+-      if (x) break;
++//      if (x) break;
+     }
+ 
+     syslog(LOG_WARNING, "invalid password for '%s' on %s %s%s", username,
+diff --git a/toys/other/mkpasswd.c b/toys/other/mkpasswd.c
+index 81870041..ed38bf6d 100644
+--- a/toys/other/mkpasswd.c
++++ b/toys/other/mkpasswd.c
+@@ -30,6 +30,8 @@ GLOBALS(
+ 
+ void mkpasswd_main(void)
+ {
++  error_exit("crypt not currently supported by mlibc");
++
+   char salt[32] = {0,};
+   int ii, jj, kk;
+ 
+@@ -77,5 +79,5 @@ void mkpasswd_main(void)
+   }
+ 
+   // encrypt & print the password
+-  xprintf("%s\n", crypt(*toys.optargs ? *toys.optargs : toybuf, salt));
++//  xprintf("%s\n", crypt(*toys.optargs ? *toys.optargs : toybuf, salt));
+ }
+diff --git a/toys/other/setfattr.c b/toys/other/setfattr.c
+index c6ff2ab5..ec25f5cd 100644
+--- a/toys/other/setfattr.c
++++ b/toys/other/setfattr.c
+@@ -29,12 +29,14 @@ GLOBALS(
+ 
+ void setfattr_main(void)
+ {
++  error_exit("needs ported to xattr_set, xattr_lset");
++
+   int h = FLAG(h), rc;
+   char **s;
+ 
+   for (s = toys.optargs; *s; s++) {
+-    if (TT.x) rc = (h ? lremovexattr : removexattr)(*s, TT.x);
+-    else rc = (h ? lsetxattr : setxattr)(*s, TT.n, TT.v, TT.v ? strlen(TT.v) : 0, 0);
++    //if (TT.x) rc = (h ? lremovexattr : removexattr)(*s, TT.x);
++    //else rc = (h ? lsetxattr : setxattr)(*s, TT.n, TT.v, TT.v ? strlen(TT.v) : 0, 0);
+     if (rc) perror_msg_raw(*s);
+   }
+ }
+diff --git a/toys/other/setsid.c b/toys/other/setsid.c
+index c6e0c53d..2826e208 100644
+--- a/toys/other/setsid.c
++++ b/toys/other/setsid.c
+@@ -51,7 +51,8 @@ void setsid_main(void)
+     ioctl(0, TIOCSCTTY, TT.c>1);
+     tcsetpgrp(0, getpid());
+   } if (FLAG(d) && (i = open("/dev/tty", O_RDONLY)) != -1) {
+-    ioctl(i, TIOCNOTTY);
++    error_exit("TIOCNOTTY not currently supported by Lunar");
++//    ioctl(i, TIOCNOTTY);
+     close(i);
+   }
+   xexec(toys.optargs);
+diff --git a/toys/other/switch_root.c b/toys/other/switch_root.c
+index b63b92ec..775b7d0f 100644
+--- a/toys/other/switch_root.c
++++ b/toys/other/switch_root.c
+@@ -36,7 +36,7 @@ static int del_node(struct dirtree *node)
+   if (node->st.st_dev != TT.rootdev) {
+     char *s = dirtree_path(node, 0);
+ 
+-    if (mount(s, s+1, "", MS_MOVE, "")) perror_msg("Failed to move %s", s);
++//    if (mount(s, s+1, "", MS_MOVE, "")) perror_msg("Failed to move %s", s);
+     // TODO: handle undermounts
+     rmdir(s);
+     free(s);
+@@ -55,15 +55,17 @@ static int del_node(struct dirtree *node)
+ 
+ void switch_root_main(void)
+ {
++  error_exit("struct statfs not currently defined by mlibc\nMS_MOVE not currently defined by Lunar");
++
+   char *newroot = *toys.optargs, **cmdline = toys.optargs+1;
+   struct stat st;
+-  struct statfs stfs;
++//  struct statfs stfs;
+   int ii, console QUIET;
+ 
+   // Must be root on a ramfs or tmpfs instance
+   if (getpid() != 1) error_exit("not pid 1");
+-  if (statfs("/", &stfs) ||
+-    (stfs.f_type != 0x858458f6 && stfs.f_type != 0x01021994))
++//  if (statfs("/", &stfs) ||
++//    (stfs.f_type != 0x858458f6 && stfs.f_type != 0x01021994))
+   {
+     error_msg("not ramfs");
+     goto panic;
+@@ -98,10 +100,10 @@ void switch_root_main(void)
+   dirtree_read("/", del_node);
+ 
+   // Fix the appearance of the mount table in the newroot chroot
+-  if (mount(".", "/", NULL, MS_MOVE, NULL)) {
+-    perror_msg("mount");
+-    goto panic;
+-  }
++//  if (mount(".", "/", NULL, MS_MOVE, NULL)) {
++//    perror_msg("mount");
++//    goto panic;
++//  }
+ 
+   // Enter the new root before starting init
+   if (chroot(".")) {
+diff --git a/toys/other/uptime.c b/toys/other/uptime.c
+index 237bba63..5be3ac88 100644
+--- a/toys/other/uptime.c
++++ b/toys/other/uptime.c
+@@ -24,7 +24,9 @@ config UPTIME
+ 
+ void uptime_main(void)
+ {
+-  struct sysinfo info;
++  error_exit("sysinfo not currently supported by Lunar\nstruct sysinfo not currently defined by Lunar");
++
++//  struct sysinfo info;
+   time_t t;
+   struct tm *tm;
+   unsigned int weeks, days, hours, minutes;
+@@ -32,12 +34,12 @@ void uptime_main(void)
+   int users = 0;
+ 
+   // Obtain the data we need.
+-  sysinfo(&info);
++//  sysinfo(&info);
+   time(&t);
+ 
+   // Just show the time of boot?
+   if (FLAG(s)) {
+-    t -= info.uptime;
++//    t -= info.uptime;
+     tm = localtime(&t);
+     strftime(toybuf, sizeof(toybuf), "%F %T", tm);
+     xputs(toybuf);
+@@ -47,11 +49,11 @@ void uptime_main(void)
+   // Current time
+   tm = localtime(&t);
+   // Uptime
+-  info.uptime /= 60;
+-  minutes = info.uptime%60;
+-  info.uptime /= 60;
+-  hours = info.uptime%24;
+-  days = info.uptime/24;
++//  info.uptime /= 60;
++//  minutes = info.uptime%60;
++//  info.uptime /= 60;
++//  hours = info.uptime%24;
++//  days = info.uptime/24;
+ 
+   if (FLAG(p)) {
+     weeks = days/7;
+@@ -74,6 +76,6 @@ void uptime_main(void)
+     printf(" %d user%s, ", users, (users!=1) ? "s" : "");
+   }
+ 
+-  printf(" load average: %.02f, %.02f, %.02f\n", info.loads[0]/65536.0,
+-    info.loads[1]/65536.0, info.loads[2]/65536.0);
++//  printf(" load average: %.02f, %.02f, %.02f\n", info.loads[0]/65536.0,
++//    info.loads[1]/65536.0, info.loads[2]/65536.0);
+ }
+diff --git a/toys/pending/chsh.c b/toys/pending/chsh.c
+index 6dd28e81..d699b308 100644
+--- a/toys/pending/chsh.c
++++ b/toys/pending/chsh.c
+@@ -29,6 +29,8 @@ GLOBALS(
+ 
+ void chsh_main()
+ {
++  error_exit("crypt not currently supported by mlibc");
++
+   FILE *file;
+   char *user, *line, *shell, *encrypted;
+   struct passwd *passwd_info;
+@@ -45,7 +47,7 @@ void chsh_main()
+   if (mlock(toybuf, sizeof(toybuf))) perror_exit("mlock");
+   if (!(shadow_info = getspnam(passwd_info->pw_name))) perror_exit("getspnam");
+   if (read_password(toybuf, sizeof(toybuf), "Password: ")) *toybuf = 0;
+-  if (!(encrypted = crypt(toybuf, shadow_info->sp_pwdp))) perror_exit("crypt");
++//  if (!(encrypted = crypt(toybuf, shadow_info->sp_pwdp))) perror_exit("crypt");
+   memset(toybuf, 0, sizeof(toybuf));
+   munlock(toybuf, sizeof(toybuf)); // prevents memset from "optimizing" away.
+   if (strcmp(encrypted, shadow_info->sp_pwdp)) perror_exit("Bad password");
+diff --git a/toys/pending/getty.c b/toys/pending/getty.c
+index aeb000e1..845f884f 100644
+--- a/toys/pending/getty.c
++++ b/toys/pending/getty.c
+@@ -65,7 +65,7 @@ static void open_tty(void)
+     if (*(TT.tty_name) != '/') TT.tty_name = xmprintf("/dev/%s", TT.tty_name);
+     // Sends SIGHUP to all foreground process if Session leader don't die,Ignore
+     void* handler = signal(SIGHUP, SIG_IGN);
+-    ioctl(0, TIOCNOTTY, 0); // Giveup if there is any controlling terminal
++//    ioctl(0, TIOCNOTTY, 0); // Giveup if there is any controlling terminal
+     signal(SIGHUP, handler);
+     if ((setsid() < 0) && (getpid() != getsid(0))) perror_exit("setsid");
+     xclose(0);
+@@ -210,6 +210,8 @@ static void utmp_entry(void)
+ 
+ void getty_main(void)
+ {
++  error_exit("TIOCNOTTY not currently defined by Lunar");
++
+   char ch, *cmd[3] = {TT.l ? : "/bin/login", 0, 0}; // space to add username
+ 
+   if (!FLAG(f)) TT.f = "/etc/issue";
+diff --git a/toys/pending/sulogin.c b/toys/pending/sulogin.c
+index 4c26f351..258fb2b2 100644
+--- a/toys/pending/sulogin.c
++++ b/toys/pending/sulogin.c
+@@ -59,7 +59,7 @@ static int validate_password(char *pwd)
+     return -1;
+   }
+ 
+-  pass = crypt(toybuf, pwd);
++//  pass = crypt(toybuf, pwd);
+   ret = 1;
+   if( pass && !strcmp(pass, pwd)) ret = 0;
+ 
+@@ -75,6 +75,8 @@ static void run_shell(char *shell)
+ 
+ void sulogin_main(void)
+ {
++  error_exit("crypt not currently supported by mlibc");
++
+   struct passwd *pwd = NULL;
+   struct spwd * spwd = NULL;
+   char *forbid[] = {
+diff --git a/toys/posix/getconf.c b/toys/posix/getconf.c
+index a6685ee6..ac144fe0 100644
+--- a/toys/posix/getconf.c
++++ b/toys/posix/getconf.c
+@@ -72,10 +72,8 @@ static struct config sysconfs[] = {
+   CONF(THREAD_ROBUST_PRIO_INHERIT), CONF(THREAD_ROBUST_PRIO_PROTECT),
+   CONF(THREAD_SAFE_FUNCTIONS), CONF(THREAD_SPORADIC_SERVER), CONF(THREADS),
+   CONF(TIMEOUTS), CONF(TIMERS), CONF(TRACE), CONF(TRACE_EVENT_FILTER),
+-  CONF(TRACE_EVENT_NAME_MAX), CONF(TRACE_INHERIT), CONF(TRACE_LOG),
+-  CONF(TRACE_NAME_MAX), CONF(TRACE_SYS_MAX), CONF(TRACE_USER_EVENT_MAX),
+-  CONF(TYPED_MEMORY_OBJECTS), CONF(VERSION), CONF(V7_ILP32_OFF32),
+-  CONF(V7_ILP32_OFFBIG), CONF(V7_LP64_OFF64), CONF(V7_LPBIG_OFFBIG),
++  CONF(TRACE_INHERIT), CONF(TRACE_LOG),
++  CONF(TYPED_MEMORY_OBJECTS), CONF(VERSION),
+ 
+   /* POSIX.2 */
+ #undef CONF
+@@ -89,7 +87,7 @@ static struct config sysconfs[] = {
+ #undef CONF
+ #define CONF(n) {"_XOPEN_" #n,_SC_XOPEN_ ## n}
+   CONF(CRYPT), CONF(ENH_I18N), CONF(REALTIME), CONF(REALTIME_THREADS),
+-  CONF(SHM), CONF(STREAMS), CONF(UNIX), CONF(UUCP), CONF(VERSION),
++  CONF(SHM), CONF(UNIX), CONF(UUCP), CONF(VERSION),
+ 
+   /* No obvious standard */
+ #undef CONF
+@@ -132,10 +130,9 @@ static struct config sysconfs[] = {
+ static struct config pathconfs[] = {
+ #undef CONF
+ #define CONF(n) {#n,_PC_ ## n}
+-  CONF(ASYNC_IO), CONF(CHOWN_RESTRICTED), CONF(FILESIZEBITS), CONF(LINK_MAX),
++  CONF(CHOWN_RESTRICTED), CONF(FILESIZEBITS), CONF(LINK_MAX),
+   CONF(MAX_CANON), CONF(MAX_INPUT), CONF(NAME_MAX), CONF(NO_TRUNC),
+-  CONF(PATH_MAX), CONF(PIPE_BUF), CONF(PRIO_IO), CONF(SYMLINK_MAX),
+-  CONF(SYNC_IO),
++  CONF(PATH_MAX), CONF(PIPE_BUF), CONF(SYMLINK_MAX),
+   {"_POSIX_VDISABLE", _PC_VDISABLE},
+ };
+ 
+@@ -200,6 +197,11 @@ static void show_conf(int i, struct config *c, const char *path)
+ 
+ void getconf_main(void)
+ {
++  error_exit("_SC_TIMEOUTS, _SC_TRACE_NAME_MAX, _SC_TRACE_SYS_MAX, _SC_TRACE_USER_EVENT_MAX,\n"
++      "_SC_V7_ILP32_OFF32, _SC_V7_ILP32_OFFBIG, _SC_V7_LP64_OFF64,\n"
++      "_SC_V7_LPBIG_OFFBIG, _SC_XOPEN_STREAMS, _PC_CHOWN_RESTRICTED, _PC_PRIO_IO,\n"
++      "_PC_SYNC_IO not currently defined by mlibc");
++
+   struct config *configs[] = {sysconfs, pathconfs, confstrs, limits, others},
+     *c = 0;
+   int i, j, lens[] = {ARRAY_LEN(sysconfs), ARRAY_LEN(pathconfs),
+diff --git a/toys/posix/ps.c b/toys/posix/ps.c
+index 582f76cd..0f14b2a6 100644
+--- a/toys/posix/ps.c
++++ b/toys/posix/ps.c
+@@ -724,7 +724,7 @@ static int get_ps(struct dirtree *new)
+   long long *slot = tb->slot;
+   char *name, *s, *buf = tb->str, *end = 0;
+   FILE *fp;
+-  struct sysinfo si;
++//  struct sysinfo si;
+   int i, j, fd;
+   off_t len;
+ 
+@@ -826,9 +826,9 @@ static int get_ps(struct dirtree *new)
+ 
+   // /proc data is generated as it's read, so for maximum accuracy on slow
+   // systems (or ps | more) we re-fetch uptime as we fetch each /proc line.
+-  sysinfo(&si);
+-  slot[SLOT_uptime] = si.uptime;
+-  slot[SLOT_totalram] = si.totalram;
++//  sysinfo(&si);
++//  slot[SLOT_uptime] = si.uptime;
++//  slot[SLOT_totalram] = si.totalram;
+   slot[SLOT_upticks] = slot[SLOT_uptime]*TT.ticks - slot[SLOT_starttime];
+ 
+   // Do we need to read "statm"?
+@@ -1331,6 +1331,8 @@ static void common_setup(void)
+ 
+ void ps_main(void)
+ {
++  error_exit("sysinfo not currently supported by Lunar\nstruct sysinfo not currently defined by Lunar");
++
+   char **arg;
+   struct dirtree *dt;
+   char *not_o;

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+clang++ --target=riscv64-unknown-lunar -march=rv64gc_zbb_zba_zihintpause --sysroot=$SYSROOT_DIR "$@"

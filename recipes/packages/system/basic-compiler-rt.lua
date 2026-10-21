@@ -1,5 +1,5 @@
 local llvm = require("recipes.tools.llvm")
-local mlibc_headers = require("recipes.packages.mlibc_headers")
+local mlibc_headers = require("recipes.packages.system.mlibc_headers")
 local target = require("recipes.helpers.target")
 
 local package = Package {

@@ -8,7 +8,8 @@ x86_64 = [
     "hello",
     "libcxx",
     "basic-compiler-rt",
-    "hellocxx"
+    "hellocxx",
+    "toybox"
 ]
 
 riscv64 = [

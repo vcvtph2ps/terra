@@ -1,5 +1,4 @@
 local build_meta = require("recipes.packages.build-meta")
-local target = require("recipes.helpers.target")
 
 local hellocxx = Package {
     name = "hellocxx",
@@ -18,11 +17,8 @@ local hellocxx = Package {
         "build-essential",
         "make",
     },
-    env = {
-        TARGET_TRIPLE = target.targetTriple[chariot.target_arch]
-    },
     build = [[
-        clang++ --target=$TARGET_TRIPLE --sysroot="$SYSROOT_DIR" -std=c++23 $SOURCE_DIR/hellocxx.cpp -o $BUILD_DIR/hellocxx
+        lunar-clang++ -std=c++23 $SOURCE_DIR/hellocxx.cpp -o $BUILD_DIR/hellocxx
     ]],
     install = [[
     	mkdir -p "$INSTALL_DIR$PREFIX/bin"

@@ -1,5 +1,4 @@
 local build_meta = require("recipes.packages.build-meta")
-local target = require("recipes.helpers.target")
 
 local BASH_VERSION = "5.3"
 
@@ -22,14 +21,11 @@ local bash = Package {
         "build-essential",
         "make",
     },
-    env = {
-        TARGET_TRIPLE = target.targetTriple[chariot.target_arch]
-    },
     configure = [[
         bash_cv_void_sighandler=yes \
         bash_cv_getcwd_malloc=yes \
         bash_cv_job_control_missing=missing \
-        CC="clang --target=${TARGET_TRIPLE} --sysroot=$SYSROOT_DIR" \
+        CC="lunar-clang" \
         AR=llvm-ar RANLIB=llvm-ranlib \
         CFLAGS="" $SOURCE_DIR/configure \
             --host=x86_64-lunar \

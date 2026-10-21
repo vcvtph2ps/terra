@@ -1,5 +1,4 @@
 local build_meta = require("recipes.packages.build-meta")
-local target = require("recipes.helpers.target")
 
 local hello = Package {
     name = "hello",
@@ -17,11 +16,8 @@ local hello = Package {
         "build-essential",
         "make",
     },
-    env = {
-        TARGET_TRIPLE = target.targetTriple[chariot.target_arch]
-    },
     build = [[
-        clang --target=$TARGET_TRIPLE --sysroot="$SYSROOT_DIR" $SOURCE_DIR/hello.c -o $BUILD_DIR/hello
+        lunar-clang $SOURCE_DIR/hello.c -o $BUILD_DIR/hello
     ]],
     install = [[
     	mkdir -p "$INSTALL_DIR$PREFIX/bin"

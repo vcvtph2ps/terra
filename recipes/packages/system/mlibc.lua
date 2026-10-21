@@ -1,11 +1,10 @@
 local pkgconf = require("recipes.tools.pkgconf")
-local llvm = require("recipes.tools.llvm")
 local support_source = require("recipes.sources.support")
 local mlibc_source = require("recipes.sources.mlibc")
-local mlibc_headers = require("recipes.packages.mlibc_headers")
-local freestanding_headers = require("recipes.packages.freestanding_headers")
-local target = require("recipes.helpers.target")
-local basic_compiler_rt = require("recipes.packages.basic-compiler-rt")
+local mlibc_headers = require("recipes.packages.system.mlibc_headers")
+local freestanding_headers = require("recipes.packages.system.freestanding_headers")
+local basic_compiler_rt = require("recipes.packages.system.basic-compiler-rt")
+local lunar_clang = require("recipes.packages.system.lunar-clang")
 
 local mlibc = Package {
     name = "mlibc",
@@ -15,7 +14,7 @@ local mlibc = Package {
     dependencies = {
         "meson", "git", "cmake",
         mlibc_headers,
-        llvm.tool,
+        lunar_clang,
         basic_compiler_rt,
 
         freestanding_headers.freestanding_cxx_headers.package,
@@ -27,16 +26,12 @@ local mlibc = Package {
         basic_compiler_rt,
     },
     env = {
-        CROSS_FILE = target.crossFiles[chariot.target_arch],
-        TARGET_TRIPLE = target.targetTriple[chariot.target_arch],
-        TARGET_CFLAGS = target.cflags[chariot.target_arch],
         TARGET_ARCH = chariot.target_arch,
     },
     configure = [[
-        CFLAGS="$TARGET_CFLAGS --target=$TARGET_TRIPLE --sysroot=$SYSROOT_DIR" \
-        CXXFLAGS="$TARGET_CFLAGS --target=$TARGET_TRIPLE --sysroot=$SYSROOT_DIR -isystem $SYSROOT_DIR$PREFIX/share/freestnd-cxx-hdrs/$TARGET_ARCH/include -Werror=unknown-attributes" \
+        CXXFLAGS="-isystem $SYSROOT_DIR$PREFIX/share/freestnd-cxx-hdrs/$TARGET_ARCH/include -Werror=unknown-attributes" \
         meson setup \
-            --cross-file "$SOURCES_DIR/support/${CROSS_FILE}" \
+            --cross-file "$SOURCES_DIR/support/$TARGET_ARCH/lunar.cross" \
             --prefix=$PREFIX \
             --libdir=lib \
             --buildtype=debug \

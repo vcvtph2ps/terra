@@ -1,8 +1,7 @@
-local helpers = require("recipes.helpers.target")
 local llvm = require("recipes.tools.llvm")
-local basic_compiler_rt = require("recipes.packages.basic-compiler-rt")
-local mlibc_headers = require("recipes.packages.mlibc_headers")
-local mlibc = require("recipes.packages.mlibc")
+local basic_compiler_rt = require("recipes.packages.system.basic-compiler-rt")
+local mlibc_headers = require("recipes.packages.system.mlibc_headers")
+local mlibc = require("recipes.packages.system.mlibc")
 local pkgconf = require("recipes.tools.pkgconf")
 local target = require("recipes.helpers.target")
 
