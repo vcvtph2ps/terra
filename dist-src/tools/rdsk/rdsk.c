@@ -10,8 +10,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define MAJOR_REVISION 1
-#define MINOR_REVISION 1
+#define MAJOR_REVISION 2
+#define MINOR_REVISION 0
 
 #define SECTION_ALIGNMENT 64
 #define ALIGN_UP(VALUE, ALIGN)                                                 \
@@ -33,21 +33,22 @@ typedef struct {
 } __attribute__((packed)) rdsk_header_t;
 
 typedef struct {
-  bool used;
   uint64_t nametable_offset;
   uint64_t data_offset;
   uint64_t size;
   uint64_t next_index;
   uint64_t parent_index;
+  bool used;
+  bool is_symlink;
 } __attribute__((packed)) rdsk_file_t;
 
 typedef struct {
-  bool used;
   uint64_t nametable_offset;
   uint64_t filetable_index;
   uint64_t dirtable_index;
   uint64_t next_index;
   uint64_t parent_index;
+  bool used;
 } __attribute__((packed)) rdsk_dir_t;
 
 FILE *g_file;
@@ -114,7 +115,7 @@ static uint64_t dirtable_create(char *name, uint64_t parent_index) {
 
 /* UTIL - FILETABLE */
 static uint64_t filetable_create(char *name, uint64_t parent_index,
-                                 uint64_t off, uint64_t size) {
+                                 uint64_t off, uint64_t size, bool symlink) {
   bool found = false;
   size_t i = 0;
   for (; i < g_filetable_size; i++) {
@@ -131,9 +132,10 @@ static uint64_t filetable_create(char *name, uint64_t parent_index,
     free(g_filetable);
     g_filetable = new_table;
     g_filetable_size += 16;
-    return filetable_create(name, parent_index, off, size);
+    return filetable_create(name, parent_index, off, size, symlink);
   }
   g_filetable[i].used = true;
+  g_filetable[i].is_symlink = symlink;
   g_filetable[i].next_index = dirtable_get(parent_index)->filetable_index;
   dirtable_get(parent_index)->filetable_index = i + 1;
   g_filetable[i].nametable_offset = nametable_write(name);
@@ -161,6 +163,23 @@ static void create_recurse(const char *name, uint64_t cur_dir_index) {
     if (entry->d_type == DT_DIR) {
       printf("Packing dir %s\n", path);
       create_recurse(path, dirtable_create(entry->d_name, cur_dir_index));
+    } else if (entry->d_type == DT_LNK) {
+      printf("Packing symlink %s -> ", path);
+      char buf[PATH_MAX];
+      ssize_t n = readlink(path, buf, sizeof(buf) - 1);
+      if (n == -1) {
+        perror("readlink");
+        continue;
+      } else {
+        buf[n] = '\0';
+        printf("%s\n", buf);
+      }
+
+      uint64_t off = g_data_offset;
+      fseek(g_file, g_data_offset, SEEK_SET);
+      fwrite(buf, n, 1, g_file);
+      g_data_offset += n;
+      filetable_create(entry->d_name, cur_dir_index, off, n, true);
     } else {
       printf("Packing file %s\n", path);
       FILE *file = fopen(path, "r");
@@ -189,7 +208,7 @@ static void create_recurse(const char *name, uint64_t cur_dir_index) {
       fwrite(buf, s.st_size, 1, g_file);
       free(buf);
       g_data_offset += s.st_size;
-      filetable_create(entry->d_name, cur_dir_index, off, s.st_size);
+      filetable_create(entry->d_name, cur_dir_index, off, s.st_size, false);
     }
   }
   closedir(dir);
@@ -234,7 +253,7 @@ static void create(char *dir_path, char *out_path) {
   g_header->dirtable_entry_count = g_dirtable_size;
   g_header->dirtable_offset = ALIGN_UP(
       g_header->nametable_offset + g_header->nametable_size, SECTION_ALIGNMENT);
-  g_header->filetable_entry_size = sizeof(rdsk_dir_t);
+  g_header->filetable_entry_size = sizeof(rdsk_file_t);
   g_header->filetable_entry_count = g_filetable_size;
   g_header->filetable_offset =
       ALIGN_UP(g_header->dirtable_offset + g_header->dirtable_entry_count *

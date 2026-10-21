@@ -16,22 +16,23 @@ struct Table {
 };
 
 struct File {
-    bool used;
     u64 nametable_offset;
     u64 data_offset;
     u64 size;
     u64 next_index;
     u64 parent_index;
+    bool used;
+    bool is_symlink;
     u8 data[size] @ data_offset;
 } [[format("nametable_format")]];
 
 struct Dir {
-    bool used;
     u64 nametable_offset;
     u64 filetable_index;
     u64 dirtable_index;
     u64 next_index;
     u64 parent_index;
+    bool used;
 } [[format("nametable_format")]];
 
 u8 signature[4] @ 0x0;
