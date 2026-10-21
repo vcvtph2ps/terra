@@ -4,7 +4,7 @@ local kernel = require("recipes.system.kernel")
 
 local prekernel_source = Source {
     name = "prekernel",
-    Git("https://github.com/vcvtph2ps/theia.git", "91ea6ab327f3c72be58bc6de0222bc8d09e207bd"),
+    Git("https://github.com/vcvtph2ps/theia.git", "443f792b6914e92ee0c9553d84c84e1244657583"),
     dependencies = { kernel.kernel },
     prepare = [[
         cp $SYSROOT_DIR/kernel.o $SOURCE_DIR/kernel.o
