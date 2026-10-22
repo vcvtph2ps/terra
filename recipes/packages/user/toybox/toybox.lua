@@ -37,7 +37,7 @@ EOF
     ]],
     install = [[
         cd "$BUILD_DIR"
-        make install PREFIX="$INSTALL_DIR$PREFIX"
+        make install_flat PREFIX="$INSTALL_DIR$PREFIX/bin"
     ]],
 }
 

@@ -2,6 +2,7 @@
 
 [packages]
 x86_64 = [
+    "base-files",
     "mlibc",
     "bash",
     "meow",

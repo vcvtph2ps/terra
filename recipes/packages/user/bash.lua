@@ -36,7 +36,10 @@ local bash = Package {
             --disable-nls
     ]],
     build = [[ make ]],
-    install = [[ make install DESTDIR=$INSTALL_DIR ]]
+    install = [[
+        make install DESTDIR=$INSTALL_DIR
+        ln -s bash $INSTALL_DIR$PREFIX/bin/sh
+    ]]
 }
 
 return bash
