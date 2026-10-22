@@ -31,7 +31,11 @@
       {
         formatter = nixpkgs.legacyPackages.${system}.nixfmt-tree;
         devShells.default = pkgs.mkShell {
-          shellHook = "export NIX_SHELL_NAME='lunar (chariot v3)'";
+          shellHook = ''
+            export __fish_machine='(dev:terra)'
+            export SHELL="${pkgs.fish}/bin/fish"
+            exec "$SHELL"
+          '';
           nativeBuildInputs = commonPackages;
         };
       }
