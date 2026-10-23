@@ -20,7 +20,10 @@ local function tartarus_build(name, platform)
             smoldtb_source,
             freestanding_c_headers_source
         },
-        configure = ([[
+        env = {
+            PLATFORM = platform
+        },
+        configure = [[
             fabricate --build-dir=$BUILD_DIR setup \
                 --config=$SOURCE_DIR/fab.lua \
                 --prefix=$PREFIX \
@@ -29,8 +32,8 @@ local function tartarus_build(name, platform)
                 --dependency-override=pico-efi=$SOURCES_DIR/pico_efi \
                 --dependency-override=smoldtb=$SOURCES_DIR/smoldtb \
                 --option=buildtype=debug \
-                --option=platform={platform}
-        ]]):gsub("{platform}", platform),
+                --option=platform="$PLATFORM"
+        ]],
         build = [[
             ninja -j$PARALLELISM
         ]],

@@ -15,13 +15,17 @@ local kernel = Package {
 
         "nasm", "clang", "clang-tidy", "lld", "llvm", "ninja-build"
     },
-    configure = ([[
+    env = {
+        ARCH = chariot.target_arch,
+        BUILD_TYPE = chariot.options["build_type"] or "debug"
+    },
+    configure = [[
         fabricate --build-dir=$BUILD_DIR setup \
             --config=$SOURCE_DIR/fab.lua \
             --prefix=/ \
-            -o arch="{arch}" \
-            -o buildtype="{build_type}" \
-    ]]):gsub("{arch}", chariot.target_arch):gsub("{build_type}", chariot.options["build_type"]),
+            -o arch="$ARCH" \
+            -o buildtype="$BUILD_TYPE" \
+    ]],
     build = [[
         run-clang-tidy \
             -quiet \

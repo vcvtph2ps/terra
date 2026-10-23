@@ -23,12 +23,16 @@ local prekernel = Package {
 
         "nasm", "clang", "clang-tidy", "lld", "llvm", "ninja-build", "tree"
     },
-    configure = ([[
+    env = {
+        ARCH = chariot.target_arch,
+        BUILD_TYPE = chariot.options["build_type"] or "debug"
+    },
+    configure = [[
         fabricate --build-dir=$BUILD_DIR setup \
             --config=$SOURCE_DIR/fab.lua \
             --prefix=/ \
-            -o arch="{arch}" \
-    ]]):gsub("{arch}", chariot.target_arch),
+            -o arch="$ARCH" \
+    ]],
     build = [[
         run-clang-tidy \
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
