@@ -34,7 +34,10 @@
           shellHook = ''
             export __fish_machine='(dev:terra)'
             export SHELL="${pkgs.fish}/bin/fish"
-            exec "$SHELL"
+
+            if [[ $- == *i* ]]; then
+               exec "$SHELL"
+            fi
           '';
           nativeBuildInputs = commonPackages;
         };
