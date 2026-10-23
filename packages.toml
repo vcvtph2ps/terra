@@ -6,7 +6,7 @@ x86_64 = [
     "mlibc",
     "bash",
     "meow",
-    "hello",
+    "forkbomb",
     "libcxx",
     "basic-compiler-rt",
     "hellocxx",
@@ -17,5 +17,5 @@ riscv64 = [
     "mlibc",
     "bash",
     "meow",
-    "hello",
+    "forkbombs",
 ]

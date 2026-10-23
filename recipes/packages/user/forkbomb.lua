@@ -1,12 +1,12 @@
 local build_meta = require("recipes.packages.build-meta")
 
-local hello = Package {
-    name = "hello",
+local forkbomb = Package {
+    name = "forkbomb",
     version = "1.0",
     revision = 1,
     source = Source {
-        name = "hello",
-        Local("dist-src/packages/hello")
+        name = "forkbomb",
+        Local("dist-src/packages/forkbomb")
     },
     dependencies = {
         build_meta.cc,
@@ -17,12 +17,12 @@ local hello = Package {
         "make",
     },
     build = [[
-        lunar-clang $SOURCE_DIR/hello.c -o $BUILD_DIR/hello
+        lunar-clang $SOURCE_DIR/forkbomb.c -o $BUILD_DIR/forkbomb
     ]],
     install = [[
     	mkdir -p "$INSTALL_DIR$PREFIX/bin"
-        cp $BUILD_DIR/hello "$INSTALL_DIR$PREFIX/bin/hello"
+        cp $BUILD_DIR/forkbomb "$INSTALL_DIR$PREFIX/bin/forkbomb"
     ]]
 }
 
-return hello
+return forkbomb
