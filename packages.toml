@@ -17,5 +17,5 @@ riscv64 = [
     "mlibc",
     "bash",
     "meow",
-    "forkbombs",
+    "forkbomb",
 ]
