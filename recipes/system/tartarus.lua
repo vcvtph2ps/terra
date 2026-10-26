@@ -1,9 +1,15 @@
 local fabricate = require("recipes.system_tools.fabricate")
-local tartarus_source = Source { name = "tartarus", Git("https://github.com/elysium-os/tartarus-bootloader.git", "cfbc177535718161039f41e7e1e0b6ffbfd497ac") }
-local pico_efi_source = Source { name = "pico_efi", Git("https://codeberg.org/PicoEFI/PicoEFI.git", "8b79fdaa72ee548a8ea24e3dc4d87bf281312865") }
-local cc_runtime_source = Source { name = "cc_runtime", Git("https://github.com/osdev0/cc-runtime.git", "9891629daf3703d0ddecd295772df7da82ab25b9") }
-local smoldtb_source = Source { name = "smoldtb", Git("https://github.com/DeanoBurrito/smoldtb.git", "72d3f8596fb91244e646944e09dcd93e1be03140") }
-local freestanding_c_headers_source = Source { name = "tartarus_freestanding_c_headers", Git("https://github.com/osdev0/freestanding-c-hdrs.git", "38fed4e1e3365733ddbfa03b0a28936243ad31e9") }
+
+local tartarus_source = Source {
+    name = "tartarus",
+    base = Git("https://github.com/elysium-os/tartarus-bootloader.git", "e95caf03e726e9b01dc6aa9b2b52a91c0253e195"),
+    dependencies = {
+        fabricate
+    },
+    prepare = [[
+        fabricate fetch
+    ]],
+}
 
 local function tartarus_build(name, platform)
     return Package {
@@ -13,24 +19,16 @@ local function tartarus_build(name, platform)
         source = tartarus_source,
         dependencies = {
             "nasm", "clang", "lld", "llvm", "ninja-build",
-            fabricate,
-
-            pico_efi_source,
-            cc_runtime_source,
-            smoldtb_source,
-            freestanding_c_headers_source
+            fabricate
         },
         env = {
             PLATFORM = platform
         },
         configure = [[
-            fabricate --build-dir=$BUILD_DIR setup \
-                --config=$SOURCE_DIR/fab.lua \
+            fabricate setup \
+                --build-dir=$BUILD_DIR \
+                --project-dir=$SOURCE_DIR \
                 --prefix=$PREFIX \
-                --dependency-override=freestanding-c-headers=$SOURCES_DIR/tartarus_freestanding_c_headers \
-                --dependency-override=cc-runtime=$SOURCES_DIR/cc_runtime \
-                --dependency-override=pico-efi=$SOURCES_DIR/pico_efi \
-                --dependency-override=smoldtb=$SOURCES_DIR/smoldtb \
                 --option=buildtype=debug \
                 --option=platform="$PLATFORM"
         ]],
@@ -38,7 +36,7 @@ local function tartarus_build(name, platform)
             ninja -j$PARALLELISM
         ]],
         install = [[
-            fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR
+            fabricate install --build-dir=$BUILD_DIR --dest-dir=$INSTALL_DIR
         ]]
     }
 end

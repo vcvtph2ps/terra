@@ -2,7 +2,16 @@ local fabricate = require("recipes.system_tools.fabricate")
 local clang_tidy_plugin = require("recipes.system_tools.clang-tidy-plugin")
 local ksym = require("recipes.system_tools.ksym")
 
-local kernel_source = Source { name = "kernel", Git("https://github.com/vcvtph2ps/lunar.git", "c36cec4cb275edc0a2558dcbe5526783f6b6cd65") }
+local kernel_source = Source {
+    name = "kernel",
+    base = Git("https://github.com/vcvtph2ps/lunar.git", "f8fb5f9abc27d3a83c303c9c6129dd9d6a323270"),
+    dependencies = {
+        fabricate
+    },
+    prepare = [[
+        fabricate fetch
+    ]]
+}
 
 local kernel = Package {
     name = "kernel",
@@ -20,11 +29,12 @@ local kernel = Package {
         BUILD_TYPE = chariot.options["build_type"] or "debug"
     },
     configure = [[
-        fabricate --build-dir=$BUILD_DIR setup \
-            --config=$SOURCE_DIR/fab.lua \
+        fabricate setup \
+            --build-dir=$BUILD_DIR \
+            --project-dir=$SOURCE_DIR \
             --prefix=/ \
-            -o arch="$ARCH" \
-            -o buildtype="$BUILD_TYPE" \
+            --option=buildtype="$BUILD_TYPE" \
+            --option=arch="$ARCH"
     ]],
     build = [[
         run-clang-tidy \
@@ -39,7 +49,7 @@ local kernel = Package {
         gzip -9 -c "$BUILD_DIR/output/kernel.elf" > "$BUILD_DIR/output/kernel.elf.gz"
     ]],
     install = [[
-        fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR
+        fabricate install --build-dir=$BUILD_DIR --dest-dir=$INSTALL_DIR
 
         case $ARCH in
             x86_64)

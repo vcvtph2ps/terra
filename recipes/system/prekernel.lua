@@ -4,9 +4,10 @@ local kernel = require("recipes.system.kernel")
 
 local prekernel_source = Source {
     name = "prekernel",
-    Git("https://github.com/vcvtph2ps/theia.git", "fe5ab225ceb3a4ef4938a97803987e8cd0a6c281"),
-    dependencies = { kernel.kernel },
+    base = Git("https://github.com/vcvtph2ps/theia.git", "990cbd615b65b4ba7f089c59a40b302614652330"),
+    dependencies = { kernel.kernel, fabricate },
     prepare = [[
+        fabricate fetch
         cp $SYSROOT_DIR/kernel.o $SOURCE_DIR/kernel.o
     ]]
 }
@@ -28,10 +29,12 @@ local prekernel = Package {
         BUILD_TYPE = chariot.options["build_type"] or "debug"
     },
     configure = [[
-        fabricate --build-dir=$BUILD_DIR setup \
-            --config=$SOURCE_DIR/fab.lua \
+        fabricate setup \
+            --build-dir=$BUILD_DIR \
+            --project-dir=$SOURCE_DIR \
             --prefix=/ \
-            -o arch="$ARCH" \
+            --option=buildtype="$BUILD_TYPE" \
+            --option=arch="$ARCH"
     ]],
     build = [[
         run-clang-tidy \
@@ -44,7 +47,7 @@ local prekernel = Package {
         ninja -j$PARALLELISM
     ]],
     install = [[
-        fabricate --build-dir=$BUILD_DIR install --dest-dir=$INSTALL_DIR
+        fabricate install --build-dir=$BUILD_DIR --dest-dir=$INSTALL_DIR
         install $SOURCE_DIR/support/tartarus.cfg $INSTALL_DIR
         install $SOURCE_DIR/support/limine.conf $INSTALL_DIR
     ]]
