@@ -6,4 +6,4 @@ else
     KERNEL="dest/kernel.elf"
 fi
 
-gdb --ex "file $KERNEL" --ex "set substitute-path ../source/kernel ../kernel/kernel" --ex "set substitute-path ../source/pre_kernel ../prekernel/pre_kernel"
+gdb --ex "file $KERNEL" --ex "set substitute-path ../source/kernel ../kernel/kernel" --ex "set substitute-path ../source/pre_kernel ../prekernel/pre_kernel" --ex "target remote /tmp/qemu-gdb-lunar.sock"

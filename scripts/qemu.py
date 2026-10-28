@@ -212,7 +212,8 @@ def qemu_command(cfg: Config, drive_file: str) -> list[str]:
         "512m",
         "--no-reboot",
         "--no-shutdown",
-        "-s",
+        "-gdb",
+        "unix:/tmp/qemu-gdb-lunar.sock,server,nowait",
         "-smp",
         f"cpus={cfg.smp}",
     ]
