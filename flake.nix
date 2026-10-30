@@ -4,7 +4,6 @@
     flake-utils.url = "github:numtide/flake-utils";
 
     chariot.url = "github:chariot-build/chariot/";
-    # chariot.url = "/persist/user/projects/chariot";
     chariot.inputs.nixpkgs.follows = "nixpkgs";
   };
 
