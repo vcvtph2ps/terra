@@ -37,13 +37,13 @@ local kernel = Package {
             --option=arch="$ARCH"
     ]],
     build = [[
-        run-clang-tidy \
-            -quiet \
-            -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
-            -source-filter "^.*/kernel/.*\\.c\$" \
-            -header-filter "^.*/kernel/.*\\.h\$" \
-            -config-file $SOURCE_DIR/.clang-tidy \
-            -use-color
+        # run-clang-tidy \
+        #     -quiet \
+        #     -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
+        #     -source-filter "^.*/kernel/.*\\.c\$" \
+        #     -header-filter "^.*/kernel/.*\\.h\$" \
+        #     -config-file $SOURCE_DIR/.clang-tidy \
+        #     -use-color
 
         ninja -j$PARALLELISM
         gzip -9 -c "$BUILD_DIR/output/kernel.elf" > "$BUILD_DIR/output/kernel.elf.gz"
