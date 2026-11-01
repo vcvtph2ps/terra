@@ -4,7 +4,7 @@ local ksym = require("recipes.system_tools.ksym")
 
 local kernel_source = Source {
     name = "kernel",
-    base = Git("https://github.com/vcvtph2ps/lunar.git", "5f72622f20f37a439dc558d132e0c8540092c13b"),
+    base = Git("https://github.com/vcvtph2ps/lunar.git", "7b9e067c17f0f1fe77ae277853fb9978375c8535"),
     dependencies = {
         fabricate
     },
@@ -73,6 +73,7 @@ local kernel = Package {
             --redefine-sym _binary__chariot_build_output_kernel_elf_gz_size=_binary_kernel_elf_size \
             --output-target $OBJCOPY_OUTPUT \
             --binary-architecture $OBJCOPY_ARCH \
+            --set-section-alignment .data=16 \
             $BUILD_DIR/output/kernel.elf.gz $INSTALL_DIR/kernel.o
     ]]
 }

@@ -18,10 +18,19 @@ IMAGE_CHOICES = [
     "limine-x86_64-bios",
     "limine-x86_64-efi",
     "limine-riscv64-efi",
+    "theia-x86_64-efi",
+    "theia-riscv64-efi",
 ]
 
+# Files placed at the root of the ESP for Tartarus/Limine
 ROOT_FILES: list[tuple[str, str | None]] = [
     ("lunar.elf", "/boot/lunar.elf"),
+    ("initramfs.rdk.gz", "/boot/initramfs.rdk.gz"),
+    ("kernel.ksym", "/boot/kernel.ksym"),
+]
+
+# Files placed at the root of the ESP for native EFI
+THEIA_EFI_FILES: list[tuple[str, str | None]] = [
     ("initramfs.rdk.gz", "/boot/initramfs.rdk.gz"),
     ("kernel.ksym", "/boot/kernel.ksym"),
 ]
@@ -39,7 +48,7 @@ def make_image(image: str, root: Path, dest: Path, build_type: str = "debug") ->
     root = Path(root)
     root.mkdir(parents=True, exist_ok=True)
 
-    options = [("build_type", build_type), ("bootloader", bootloader)]
+    options = [("build_type", build_type)]
 
     packages = ["kernel_symbols", "prekernel", "kernel"]
     if bootloader == "tartarus":
@@ -59,12 +68,16 @@ def make_image(image: str, root: Path, dest: Path, build_type: str = "debug") ->
     ):
         sys.exit("Failed to install image packages")
 
-    image_files: list[tuple[str, str | None]] = list(ROOT_FILES)
-
-    if bootloader == "tartarus":
-        image_files.append(("tartarus.cfg", None))
-    elif bootloader == "limine":
-        image_files.append(("limine.conf", None))
+    if bootloader == "theia":
+        efi_name = "BOOTX64.EFI" if arch == "x86_64" else "BOOTRISCV64.EFI"
+        image_files: list[tuple[str, str | None]] = list(THEIA_EFI_FILES)
+        image_files.append(("lunar.efi", f"/EFI/BOOT/{efi_name}"))
+    else:
+        image_files = list(ROOT_FILES)
+        if bootloader == "tartarus":
+            image_files.append(("tartarus.cfg", None))
+        elif bootloader == "limine":
+            image_files.append(("limine.conf", None))
 
     if firmware == "efi":
         if bootloader == "tartarus":
@@ -138,6 +151,8 @@ def build_image(
     dest = Path(dest)
 
     root = Path(chariot_utils.dest_path())
+    if root.is_dir():
+        shutil.rmtree(root)
     root.mkdir(parents=True, exist_ok=True)
 
     initramfs = root.joinpath("initramfs.rdk.gz")

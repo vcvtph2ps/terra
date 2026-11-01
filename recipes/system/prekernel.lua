@@ -4,7 +4,7 @@ local kernel = require("recipes.system.kernel")
 
 local prekernel_source = Source {
     name = "prekernel",
-    base = Git("https://github.com/vcvtph2ps/theia.git", "6e2b4606272190ca623135d5d782da425521a215"),
+    base = Git("https://github.com/vcvtph2ps/theia.git", "14c3505dd0e49ad1f1ee42688832ac4de0136ebf"),
     dependencies = { kernel.kernel, fabricate },
     prepare = [[
         fabricate fetch

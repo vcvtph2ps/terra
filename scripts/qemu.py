@@ -88,9 +88,9 @@ def parse_args() -> Config:
 
     parser.add_argument(
         "--bootloader",
-        choices=["tartarus", "limine"],
-        default="tartarus",
-        help="(default: tartarus)",
+        choices=["tartarus", "limine", "theia"],
+        default="theia",
+        help="(default: theia)",
     )
 
     parser.add_argument(
@@ -149,6 +149,23 @@ def parse_args() -> Config:
         const="kvm",
         help="Alias of --accel kvm",
     )
+
+    parser.add_argument(
+        "--theia",
+        dest="bootloader",
+        action="store_const",
+        const="theia",
+        help="Alias of --bootloader theia",
+    )
+
+    parser.add_argument(
+        "--tartarus",
+        dest="bootloader",
+        action="store_const",
+        const="tartarus",
+        help="Alias of --bootloader tartarus",
+    )
+
     parser.add_argument(
         "--limine",
         dest="bootloader",
@@ -159,7 +176,9 @@ def parse_args() -> Config:
 
     parser.add_argument(
         "--riscv64",
-        action="store_true",
+        dest="arch",
+        action="store_const",
+        const="riscv64",
         help="Alias of --arch riscv64",
     )
 
@@ -184,8 +203,8 @@ def parse_args() -> Config:
         release=args.release,
     )
 
-    if args.riscv64:
-        cfg = replace(cfg, arch="riscv64")
+    if args.bootloader == "theia":
+        cfg = replace(cfg, uefi=True)
 
     return normalize(cfg)
 
