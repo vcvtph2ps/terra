@@ -1,4 +1,7 @@
-local clang_tidy_plugin_source = Source { name = "clang_tidy_plugin", Git("https://github.com/elysium-os/clang-tidy-plugin", "0f576eb4e333cf5937a02370e377d254163a2682") }
+local clang_tidy_plugin_source = Source {
+    name = "clang_tidy_plugin",
+    Git("https://github.com/vcvtph2ps/clang-tidy-plugin", "829950fefab84bb32594e4e11fb4a670b7347048"),
+}
 
 local clang_tidy_plugin = Tool {
     name = "clang-tidy-plugin",
