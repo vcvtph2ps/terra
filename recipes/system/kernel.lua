@@ -4,12 +4,14 @@ local ksym = require("recipes.system_tools.ksym")
 
 local kernel_source = Source {
     name = "kernel",
-    base = Git("https://github.com/vcvtph2ps/lunar.git", "7b9e067c17f0f1fe77ae277853fb9978375c8535"),
+    base = Git("https://github.com/vcvtph2ps/lunar.git", "68c73cbbe9593d67b1319ffd82ecf4972f25cd70"),
     dependencies = {
-        fabricate
+        fabricate,
+        "git",
     },
     prepare = [[
         fabricate fetch
+        bash "$SOURCE_DIR/scripts/gen-version.sh"
     ]]
 }
 
