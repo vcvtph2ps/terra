@@ -9,6 +9,7 @@ dest/
 .luarc.json
 
 # Random build artifacts
+out/
 *.img
 *.rdk
 *.rdk.gz

@@ -22,6 +22,9 @@ IMAGE_CHOICES = [
     "theia-riscv64-efi",
 ]
 
+# Directory (relative to the project root) where the images are written
+IMAGE_DIR = Path("out")
+
 # Files placed at the root of the ESP for Tartarus/Limine
 ROOT_FILES: list[tuple[str, str | None]] = [
     ("lunar.elf", "/boot/lunar.elf"),
@@ -43,12 +46,8 @@ def format_file_list(files: Sequence[tuple[str, str | None]]) -> str:
     )
 
 
-def make_image(image: str, root: Path, dest: Path, build_type: str = "debug") -> None:
-    bootloader, arch, firmware = image.split("-")
-    root = Path(root)
-    root.mkdir(parents=True, exist_ok=True)
-
-    options = [("build_type", build_type)]
+def image_packages(image: str) -> list[str]:
+    bootloader, _arch, firmware = image.split("-")
 
     packages = ["kernel_symbols", "prekernel", "kernel"]
     if bootloader == "tartarus":
@@ -56,10 +55,16 @@ def make_image(image: str, root: Path, dest: Path, build_type: str = "debug") ->
     elif bootloader == "limine":
         packages.append("limine")
 
+    return packages
+
+
+def install_image_packages(image: str, root: Path, build_type: str = "debug") -> None:
+    _bootloader, arch, _firmware = image.split("-")
+
     if (
         chariot_utils.install(
-            packages,
-            options=options,
+            image_packages(image),
+            options=[("build_type", build_type)],
             arch=arch,
             dest=str(root),
             force=True,
@@ -67,6 +72,21 @@ def make_image(image: str, root: Path, dest: Path, build_type: str = "debug") ->
         != 0
     ):
         sys.exit("Failed to install image packages")
+
+
+def make_image(
+    image: str,
+    root: Path,
+    dest: Path,
+    build_type: str = "debug",
+    install: bool = True,
+) -> None:
+    bootloader, arch, firmware = image.split("-")
+    root = Path(root)
+    root.mkdir(parents=True, exist_ok=True)
+
+    if install:
+        install_image_packages(image, root, build_type)
 
     if bootloader == "theia":
         efi_name = "BOOTX64.EFI" if arch == "x86_64" else "BOOTRISCV64.EFI"
@@ -79,6 +99,7 @@ def make_image(image: str, root: Path, dest: Path, build_type: str = "debug") ->
         elif bootloader == "limine":
             image_files.append(("limine.conf", None))
 
+    create_image = None
     if firmware == "efi":
         if bootloader == "tartarus":
             efi_name = "BOOTX64.EFI" if arch == "x86_64" else "BOOTRISCV64.EFI"
@@ -122,19 +143,20 @@ def make_image(image: str, root: Path, dest: Path, build_type: str = "debug") ->
     else:
         sys.exit(f"Unknown firmware type: {firmware}")
 
+    assert create_image is not None
+    
     exec_packages = ["mkimg"]
     if arch == "x86_64" and bootloader == "limine" and firmware == "bios":
         exec_packages.append("limine")
 
     mount = os.path.relpath(root, chariot_utils.project_path())
-
     if (
         chariot_utils.exec_tool(
             exec_packages,
             create_image,
             cwd="/imagetemp",
             mounts=[f"{mount}=/imagetemp"],
-            options=options,
+            options=[],
             arch=arch,
         ).returncode
         != 0
@@ -145,19 +167,25 @@ def make_image(image: str, root: Path, dest: Path, build_type: str = "debug") ->
 
 
 def build_image(
-    image: str, packages: Iterable[str], dest: Path, build_type: str = "debug"
+    image: str,
+    packages: Iterable[str],
+    dest: Path = IMAGE_DIR,
+    build_type: str = "debug",
 ) -> None:
     arch = image.split("-")[1]
     dest = Path(dest)
+    dest.mkdir(parents=True, exist_ok=True)
 
     root = Path(chariot_utils.dest_path())
     if root.is_dir():
         shutil.rmtree(root)
     root.mkdir(parents=True, exist_ok=True)
 
+    install_image_packages(image, root, build_type)
+
     initramfs = root.joinpath("initramfs.rdk.gz")
     make_initramfs(packages, arch, initramfs, build_type)
-    make_image(image, root, dest.joinpath(f"{image}.img"), build_type)
+    make_image(image, root, dest.joinpath(f"{image}.img"), build_type, install=False)
 
 
 if __name__ == "__main__":
@@ -167,8 +195,8 @@ if __name__ == "__main__":
         "-d",
         "--dest",
         type=Path,
-        default=Path("./"),
-        help="Where to save the images (default: ./)",
+        default=IMAGE_DIR,
+        help=f"Where to save the images (default: {IMAGE_DIR}/)",
     )
 
     parser.add_argument(
@@ -201,6 +229,8 @@ if __name__ == "__main__":
     root.mkdir()
 
     shutil.copy(str(args.initramfs), str(root.joinpath("initramfs.rdk.gz")))
+
+    args.dest.mkdir(parents=True, exist_ok=True)
 
     try:
         for image in args.images:

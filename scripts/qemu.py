@@ -11,7 +11,7 @@ from pathlib import Path
 
 import chariot_utils
 import tomllib
-from make_image import build_image
+from make_image import IMAGE_DIR, build_image
 
 
 def download_ovmf():
@@ -351,11 +351,11 @@ def main() -> None:
     build_image(
         image_name,
         load_packages(cfg.arch),
-        Path("."),
+        IMAGE_DIR,
         "release" if cfg.release else "debug",
     )
 
-    qemu_cmd = qemu_command(cfg, f"{image_name}.img")
+    qemu_cmd = qemu_command(cfg, str(IMAGE_DIR / f"{image_name}.img"))
     print(" ".join(qemu_cmd))
     subprocess.run(qemu_cmd)
 
