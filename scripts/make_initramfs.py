@@ -42,6 +42,7 @@ def make_initramfs(
             sys.exit("Failed to install initramfs packages")
 
         (root_dir / "dev").mkdir(exist_ok=True)
+        (root_dir / "tmp").mkdir(exist_ok=True)
 
         if (
             chariot_utils.exec_tool(
