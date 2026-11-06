@@ -4,6 +4,7 @@ local mlibc_headers = require("recipes.packages.system.mlibc_headers")
 local mlibc = require("recipes.packages.system.mlibc")
 local pkgconf = require("recipes.tools.pkgconf")
 local target = require("recipes.helpers.target")
+local libcxx_headers = require("recipes.packages.system.libcxx_headers")
 
 local package = Package {
     name = "libcxx",
@@ -19,7 +20,8 @@ local package = Package {
         basic_compiler_rt
     },
     runtime_dependencies = {
-        mlibc
+        mlibc,
+        libcxx_headers
     },
     env = {
         TARGET_TRIPLE = target.targetTriple[chariot.target_arch]
@@ -40,6 +42,8 @@ local package = Package {
         -DLIBUNWIND_ENABLE_SHARED=ON \
         -DLIBCXX_ENABLE_SHARED=ON \
         -DLIBCXX_ENABLE_THREADS=OFF \
+        -DLIBCXX_INSTALL_HEADERS=OFF \
+        -DLIBCXXABI_INSTALL_HEADERS=OFF \
         -DLIBCXXABI_ENABLE_SHARED=ON \
         -DLIBCXXABI_ENABLE_THREADS=OFF \
         -DLIBCXX_USE_COMPILER_RT=ON \

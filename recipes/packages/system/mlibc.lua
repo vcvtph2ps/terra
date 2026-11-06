@@ -2,9 +2,9 @@ local pkgconf = require("recipes.tools.pkgconf")
 local support_source = require("recipes.sources.support")
 local mlibc_source = require("recipes.sources.mlibc")
 local mlibc_headers = require("recipes.packages.system.mlibc_headers")
-local freestanding_headers = require("recipes.packages.system.freestanding_headers")
 local basic_compiler_rt = require("recipes.packages.system.basic-compiler-rt")
 local lunar_clang = require("recipes.packages.system.lunar-clang")
+local libcxx_headers = require("recipes.packages.system.libcxx_headers")
 
 local mlibc = Package {
     name = "mlibc",
@@ -16,8 +16,7 @@ local mlibc = Package {
         mlibc_headers,
         lunar_clang,
         basic_compiler_rt,
-
-        freestanding_headers.freestanding_cxx_headers.package,
+        libcxx_headers,
         pkgconf,
 
         support_source,
@@ -29,7 +28,7 @@ local mlibc = Package {
         TARGET_ARCH = chariot.target_arch,
     },
     configure = [[
-        CXXFLAGS="-isystem $SYSROOT_DIR$PREFIX/share/freestnd-cxx-hdrs/$TARGET_ARCH/include -Werror=unknown-attributes" \
+        CXXFLAGS="-nostdinc++ -Werror=unknown-attributes" \
         meson setup \
             --cross-file "$SOURCES_DIR/support/$TARGET_ARCH/lunar.cross" \
             --prefix=$PREFIX \

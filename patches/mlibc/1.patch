@@ -1,3 +1,4 @@
+# Force -Wl -Bsymbolic-functions into the linker args
 diff --git a/meson.build b/meson.build
 index c99dac41..154aac46 100644
 --- a/meson.build
