@@ -3,7 +3,7 @@
 .chariot-rootfs
 .chariot.toml
 qemu_err.log
-edk2-ovmf/
+edk2-ovmf-bins/
 __pycache__/
 dest/
 .luarc.json

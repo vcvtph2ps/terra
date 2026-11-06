@@ -15,11 +15,11 @@ from make_image import IMAGE_DIR, build_image
 
 
 def download_ovmf():
-    if os.path.exists("edk2-ovmf"):
+    if os.path.exists("edk2-ovmf-bins"):
         return
 
     r = subprocess.run(
-        "curl -L https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/edk2-ovmf.tar.gz | gunzip | tar -xf -",
+        "curl -L https://github.com/osdev0/edk2-ovmf-nightly-bins/releases/download/20261029T050735Z/edk2-ovmf-bins.tar.gz | gunzip | tar -xf -",
         shell=True,
     )
 
@@ -291,7 +291,7 @@ def qemu_command(cfg: Config, drive_file: str) -> list[str]:
     if cfg.uefi:
         qemu_cmd += [
             "-drive",
-            f"if=pflash,unit=0,format=raw,file=edk2-ovmf/ovmf-code-{cfg.arch}.fd,readonly=on",
+            f"if=pflash,unit=0,format=raw,file=edk2-ovmf-bins/ovmf-code-{cfg.arch}.fd,readonly=on",
         ]
 
     if cfg.arch == "x86_64":
