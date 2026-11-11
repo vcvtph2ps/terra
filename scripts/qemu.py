@@ -57,6 +57,7 @@ class Config:
     graphics: bool = False
     bootloader: str = "tartarus"
     smp: int = 2
+    memory: int = 512
     acpi: bool = False
     release: bool = False
 
@@ -98,6 +99,13 @@ def parse_args() -> Config:
         type=int,
         default=2,
         help="The amount of cores to pass to the vm (default: 2)",
+    )
+
+    parser.add_argument(
+        "--memory",
+        type=int,
+        default=512,
+        help="The amount of memory to pass to the vm in megabytes (default: 512)",
     )
 
     parser.add_argument(
@@ -199,6 +207,7 @@ def parse_args() -> Config:
         graphics=args.graphics,
         bootloader=args.bootloader,
         smp=args.cores,
+        memory=args.memory,
         acpi=args.acpi,
         release=args.release,
     )
@@ -228,7 +237,7 @@ def qemu_command(cfg: Config, drive_file: str) -> list[str]:
     qemu_cmd = [
         f"qemu-system-{cfg.arch}",
         "-m",
-        "512m",
+        f"{cfg.memory}m",
         "--no-reboot",
         "--no-shutdown",
         "-gdb",
