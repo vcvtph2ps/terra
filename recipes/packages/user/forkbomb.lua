@@ -1,6 +1,6 @@
 local build_meta = require("recipes.packages.build-meta")
 
-local forkbomb = Package {
+local forkbomb = LunarPackage {
     name = "forkbomb",
     version = "1.0",
     revision = 1,
@@ -17,11 +17,11 @@ local forkbomb = Package {
         "make",
     },
     build = [[
-        lunar-clang $SOURCE_DIR/forkbomb.c -o $BUILD_DIR/forkbomb
+        lunar-clang $SOURCE_DIR/forkbomb.c -o $BUILD_DIR/pctest
     ]],
     install = [[
     	mkdir -p "$INSTALL_DIR$PREFIX/bin"
-        cp $BUILD_DIR/forkbomb "$INSTALL_DIR$PREFIX/bin/forkbomb"
+        cp $BUILD_DIR/pctest "$INSTALL_DIR$PREFIX/bin/pctest"
     ]]
 }
 

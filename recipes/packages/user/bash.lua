@@ -8,7 +8,7 @@ local bash_source = Source {
     patches = { "patches/bash.patch" }
 }
 
-local bash = Package {
+local bash = LunarPackage {
     name = "bash",
     version = BASH_VERSION,
     revision = 1,
@@ -25,9 +25,7 @@ local bash = Package {
         bash_cv_void_sighandler=yes \
         bash_cv_getcwd_malloc=yes \
         bash_cv_job_control_missing=missing \
-        CC="lunar-clang" \
-        AR=llvm-ar RANLIB=llvm-ranlib \
-        CFLAGS="" $SOURCE_DIR/configure \
+        $SOURCE_DIR/configure \
             --host=x86_64-lunar \
             --prefix=$PREFIX \
             --without-bash-malloc \

@@ -8,7 +8,7 @@ local toybox_source = Source {
     patches = { "patches/toybox.patch" }
 }
 
-local toybox = Package {
+local toybox = LunarPackage {
     name = "toybox",
     version = "1.0",
     revision = 1,

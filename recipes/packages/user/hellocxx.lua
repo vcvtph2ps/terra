@@ -1,6 +1,6 @@
 local build_meta = require("recipes.packages.build-meta")
 
-local hellocxx = Package {
+local hellocxx = LunarPackage {
     name = "hellocxx",
     version = "1.0",
     revision = 1,

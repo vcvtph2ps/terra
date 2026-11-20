@@ -1,6 +1,6 @@
 local build_meta = require("recipes.packages.build-meta")
 
-local meow = Package {
+local meow = LunarPackage {
     name = "meow",
     version = "1.0",
     revision = 1,

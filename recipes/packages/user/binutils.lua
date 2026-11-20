@@ -43,7 +43,7 @@ local binutils_source = Source {
     ]]
 }
 
-local binutils = Package {
+local binutils = LunarPackage {
     name = "binutils",
     version = BINUTILS_VERSION,
     revision = 1,
@@ -59,13 +59,6 @@ local binutils = Package {
         autoconf_2_69,
         autotools.automake,
         autotools.libtool,
-    },
-    env = {
-        TARGET_ARCH = chariot.target_arch,
-        CC = "lunar-clang",
-        AR = "llvm-ar",
-        RANLIB = "llvm-ranlib",
-        STRIP = "llvm-strip",
     },
     configure = [[
         CFLAGS="-g -O2 -std=gnu17" \
