@@ -10,12 +10,8 @@ x86_64 = [
     "libcxx",
     "basic-compiler-rt",
     "hellocxx",
-    "toybox"
+    "toybox",
+    "binutils",
 ]
 
-riscv64 = [
-    "mlibc",
-    "bash",
-    "meow",
-    "forkbomb",
-]
+riscv64 = ["mlibc", "bash", "meow", "forkbomb", "toybox", "binutils"]

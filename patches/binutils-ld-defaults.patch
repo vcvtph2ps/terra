@@ -1,0 +1,53 @@
+diff -Naru binutils-2.44/ld/emulparams/elf_x86_64.sh binutils-2.44-patched/ld/emulparams/elf_x86_64.sh
+--- binutils-2.44/ld/emulparams/elf_x86_64.sh	2026-11-21 05:56:07.635435587 +1100
++++ binutils-2.44-patched/ld/emulparams/elf_x86_64.sh	2026-11-21 05:56:07.640435652 +1100
+@@ -57,3 +57,13 @@
+     ELF_INTERPRETER_NAME=\"/lib/amd64/ld.so.1\"
+   ;;
+ esac
++
++case "$target" in
++  *-*-lunar*)
++    ELF_INTERPRETER_NAME=\"/usr/lib/ld.so\"
++    INPUT_FILES=
++    if [ -z "${CREATE_SHLIB}" ]; then
++      INPUT_FILES="INPUT(/usr/lib/crt1.o) INPUT(/usr/lib/crti.o) INPUT(-lc) INPUT(/usr/lib/crtn.o)"
++    fi
++    ;;
++esac
+
+diff -Naru binutils-2.44/ld/emulparams/elf_i386.sh binutils-2.44-patched/ld/emulparams/elf_i386.sh
+--- binutils-2.44/ld/emulparams/elf_i386.sh	2026-11-21 05:56:07.637435613 +1100
++++ binutils-2.44-patched/ld/emulparams/elf_i386.sh	2026-11-21 05:56:07.641435665 +1100
+@@ -49,3 +49,13 @@
+     esac
+     ;;
+ esac
++
++case "$target" in
++  *-*-lunar*)
++    ELF_INTERPRETER_NAME=\"/usr/lib/ld.so\"
++    INPUT_FILES=
++    if [ -z "${CREATE_SHLIB}" ]; then
++      INPUT_FILES="INPUT(/usr/lib/crt1.o) INPUT(/usr/lib/crti.o) INPUT(-lc) INPUT(/usr/lib/crtn.o)"
++    fi
++    ;;
++esac
+
+diff -Naru binutils-2.44/ld/emulparams/elf64lriscv.sh binutils-2.44-patched/ld/emulparams/elf64lriscv.sh
+--- binutils-2.44/ld/emulparams/elf64lriscv.sh	2026-11-21 05:56:07.638435626 +1100
++++ binutils-2.44-patched/ld/emulparams/elf64lriscv.sh	2026-11-21 05:56:07.642435678 +1100
+@@ -13,3 +13,13 @@
+     esac
+     ;;
+ esac
++
++case "$target" in
++  *-*-lunar*)
++    ELF_INTERPRETER_NAME=\"/usr/lib/ld.so\"
++    INPUT_FILES=
++    if [ -z "${CREATE_SHLIB}" ]; then
++      INPUT_FILES="INPUT(/usr/lib/crt1.o) INPUT(/usr/lib/crti.o) INPUT(-lc) INPUT(/usr/lib/crtn.o)"
++    fi
++    ;;
++esac
