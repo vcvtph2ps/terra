@@ -4,7 +4,7 @@ local ksym = require("recipes.system_tools.ksym")
 
 local kernel_source = Source {
     name = "kernel",
-    base = Git("https://github.com/vcvtph2ps/lunar.git", "68c73cbbe9593d67b1319ffd82ecf4972f25cd70"),
+    base = Git("https://github.com/vcvtph2ps/lunar.git", "2cb356f55d39add918db665188b1dd8b30072bb1"),
     dependencies = {
         fabricate,
         "git",
@@ -24,7 +24,8 @@ local kernel = Package {
         fabricate,
         clang_tidy_plugin,
 
-        "nasm", "clang", "clang-tidy", "lld", "llvm", "ninja-build"
+        "nasm", "clang", "clang-tidy", "lld", "llvm", "ninja-build",
+        "python3", "zstd"
     },
     env = {
         ARCH = chariot.target_arch,
@@ -42,13 +43,15 @@ local kernel = Package {
         run-clang-tidy \
             -quiet \
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
-            -source-filter "^.*/kernel/.*\\.c\$" \
-            -header-filter "^.*/kernel/.*\\.h\$" \
+            -source-filter "^.*/kernel/src/.*\\.c\$" \
+            -header-filter "^.*/kernel/(include|src)/.*\\.h\$" \
             -config-file $SOURCE_DIR/.clang-tidy \
             -use-color
 
         ninja -j$PARALLELISM
-        gzip -9 -c "$BUILD_DIR/output/kernel.elf" > "$BUILD_DIR/output/kernel.elf.gz"
+        llvm-objcopy --strip-debug \
+            "$BUILD_DIR/output/kernel.elf" "$BUILD_DIR/output/kernel.load.elf"
+        zstd -19 -q -c "$BUILD_DIR/output/kernel.load.elf" > "$BUILD_DIR/output/kernel.elf.zst"
     ]],
     install = [[
         fabricate install --build-dir=$BUILD_DIR --dest-dir=$INSTALL_DIR
@@ -70,13 +73,13 @@ local kernel = Package {
 
         llvm-objcopy \
             --input-target binary \
-            --redefine-sym _binary__chariot_build_output_kernel_elf_gz_start=_binary_kernel_elf_start \
-            --redefine-sym _binary__chariot_build_output_kernel_elf_gz_end=_binary_kernel_elf_end \
-            --redefine-sym _binary__chariot_build_output_kernel_elf_gz_size=_binary_kernel_elf_size \
+            --redefine-sym _binary__chariot_build_output_kernel_elf_zst_start=_binary_kernel_elf_start \
+            --redefine-sym _binary__chariot_build_output_kernel_elf_zst_end=_binary_kernel_elf_end \
+            --redefine-sym _binary__chariot_build_output_kernel_elf_zst_size=_binary_kernel_elf_size \
             --output-target $OBJCOPY_OUTPUT \
             --binary-architecture $OBJCOPY_ARCH \
             --set-section-alignment .data=16 \
-            $BUILD_DIR/output/kernel.elf.gz $INSTALL_DIR/kernel.o
+            $BUILD_DIR/output/kernel.elf.zst $INSTALL_DIR/kernel.o
     ]]
 }
 

@@ -64,7 +64,7 @@ def make_initramfs(
             with open(compressed, "wb") as out:
                 if (
                     subprocess.run(
-                        ["gzip", "-6", "-c", str(dest)], stdout=out
+                        ["zstd", "-9", "-q", "-c", str(dest)], stdout=out
                     ).returncode
                     != 0
                 ):
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--no-compress",
         action="store_true",
-        help="Don't compress the initramfs with gzip -9",
+        help="Don't compress the initramfs with zstd -9",
     )
 
     parser.add_argument(

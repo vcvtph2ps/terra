@@ -12,6 +12,6 @@ dest/
 out/
 *.img
 *.rdk
-*.rdk.gz
+*.rdk.zst
 image_temp/
 initramfs_temp/

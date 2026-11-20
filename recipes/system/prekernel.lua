@@ -4,7 +4,7 @@ local kernel = require("recipes.system.kernel")
 
 local prekernel_source = Source {
     name = "prekernel",
-    base = Git("https://github.com/vcvtph2ps/theia.git", "8892c3a86e6758c8827ddc44a376c6c53a727c40"),
+    base = Git("https://github.com/vcvtph2ps/theia.git", "3c689db22c8a2c5d640620eccf698e7c98c24520"),
     dependencies = { kernel.kernel, fabricate },
     prepare = [[
         fabricate fetch
@@ -22,7 +22,8 @@ local prekernel = Package {
         clang_tidy_plugin,
         fabricate,
 
-        "nasm", "clang", "clang-tidy", "lld", "llvm", "ninja-build", "tree"
+        "nasm", "clang", "clang-tidy", "lld", "llvm", "ninja-build", "tree",
+        "python3", "zstd"
     },
     env = {
         ARCH = chariot.target_arch,
@@ -39,8 +40,8 @@ local prekernel = Package {
     build = [[
         run-clang-tidy \
             -load /usr/local/lib/clang-tidy-plugins/libelysium-tidy.so \
-            -source-filter "^.*/prekernel/.*\\.c\$" \
-            -header-filter "^.*/prekernel/.*\\.h\$" \
+            -source-filter "^.*/prekernel/pre_kernel/.*\\.c\$" \
+            -header-filter "^.*/prekernel/pre_kernel/.*\\.h\$" \
             -config-file $SOURCE_DIR/.clang-tidy \
             -use-color
 

@@ -28,13 +28,13 @@ IMAGE_DIR = Path("out")
 # Files placed at the root of the ESP for Tartarus/Limine
 ROOT_FILES: list[tuple[str, str | None]] = [
     ("lunar.elf", "/boot/lunar.elf"),
-    ("initramfs.rdk.gz", "/boot/initramfs.rdk.gz"),
+    ("initramfs.rdk.zst", "/boot/initramfs.rdk.zst"),
     ("kernel.ksym", "/boot/kernel.ksym"),
 ]
 
 # Files placed at the root of the ESP for native EFI
 THEIA_EFI_FILES: list[tuple[str, str | None]] = [
-    ("initramfs.rdk.gz", "/boot/initramfs.rdk.gz"),
+    ("initramfs.rdk.zst", "/boot/initramfs.rdk.zst"),
     ("kernel.ksym", "/boot/kernel.ksym"),
 ]
 
@@ -183,7 +183,7 @@ def build_image(
 
     install_image_packages(image, root, build_type)
 
-    initramfs = root.joinpath("initramfs.rdk.gz")
+    initramfs = root.joinpath("initramfs.rdk.zst")
     make_initramfs(packages, arch, initramfs, build_type)
     make_image(image, root, dest.joinpath(f"{image}.img"), build_type, install=False)
 
@@ -203,8 +203,8 @@ if __name__ == "__main__":
         "-i",
         "--initramfs",
         type=Path,
-        default=Path("./initramfs.rdk.gz"),
-        help="What initramfs to include in the image (default: ./initramfs.rdk.gz)",
+        default=Path("./initramfs.rdk.zst"),
+        help="What initramfs to include in the image (default: ./initramfs.rdk.zst)",
     )
 
     parser.add_argument(
@@ -228,7 +228,7 @@ if __name__ == "__main__":
         shutil.rmtree(root)
     root.mkdir()
 
-    shutil.copy(str(args.initramfs), str(root.joinpath("initramfs.rdk.gz")))
+    shutil.copy(str(args.initramfs), str(root.joinpath("initramfs.rdk.zst")))
 
     args.dest.mkdir(parents=True, exist_ok=True)
 
