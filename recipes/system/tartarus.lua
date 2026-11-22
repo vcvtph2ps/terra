@@ -2,7 +2,7 @@ local fabricate = require("recipes.system_tools.fabricate")
 
 local tartarus_source = Source {
     name = "tartarus",
-    base = Git("https://github.com/elysium-os/tartarus-bootloader.git", "ed39178c4f8164f83c72ae94c10e0e501c429004"),
+    base = Git("https://github.com/elysium-os/tartarus-bootloader.git", "d3787b8462c0b2a54f855999ec40a205c9cdde29"),
     dependencies = {
         fabricate
     },
