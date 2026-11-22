@@ -1,6 +1,5 @@
 local build_meta = require("recipes.packages.build-meta")
-local config = require("recipes.packages.user.toybox.toybox_config")
-local target = require("recipes.helpers.target")
+local config = chariot.read_file("recipes/packages/user/toybox/toybox_config")
 
 local toybox_source = Source {
     name = "toybox",
