@@ -1,32 +1,20 @@
-require("recipes.helpers.toolchain")
-require("recipes.helpers.gnu")
+local function require_recursive(path)
+    for _, entry in ipairs(chariot.list_dir(path)) do
+        if entry.is_dir then
+            require_recursive(path .. "/" .. entry.filename)
+        else
+            local ext = entry.filename:match("^.+%.(.+)$")
+            if ext == "lua" then
+                require(string.gsub(path, "%/", ".") .. "." .. entry.filename:gsub("%.[^%.]+$", ""))
+            end
+        end
+    end
+end
 
-require("recipes.sources.mlibc")
-require("recipes.sources.support")
-
-require("recipes.system_tools.fabricate")
-require("recipes.system_tools.rdsk")
-require("recipes.system_tools.ksym")
-require("recipes.system_tools.mkimg")
-require("recipes.system_tools.clang-tidy-plugin")
-
-require("recipes.tools.autotools")
-require("recipes.tools.reconfigure")
-require("recipes.tools.pkgconf")
-
-require("recipes.system.tartarus")
-require("recipes.system.limine")
-
-require("recipes.system.kernel")
-require("recipes.system.prekernel")
-
-require("recipes.packages.system.freestanding_headers")
-require("recipes.packages.system.mlibc_headers")
-require("recipes.packages.system.mlibc")
-require("recipes.packages.user.bash")
-require("recipes.packages.user.forkbomb")
-require("recipes.packages.user.meow")
-require("recipes.packages.user.hellocxx")
-require("recipes.packages.user.toybox.toybox")
-require("recipes.packages.user.base-files")
-require("recipes.packages.user.binutils")
+require_recursive("recipes/helpers")
+require_recursive("recipes/sources")
+require_recursive("recipes/system_tools")
+require_recursive("recipes/system")
+require_recursive("recipes/tools")
+require_recursive("recipes/packages/system")
+require_recursive("recipes/packages/user")
