@@ -1,0 +1,22 @@
+diff --git a/options/ansi/generic/file-io.cpp b/options/ansi/generic/file-io.cpp
+index be045694..aa0085d0 100644
+--- a/options/ansi/generic/file-io.cpp
++++ b/options/ansi/generic/file-io.cpp
+@@ -419,7 +419,7 @@ int abstract_file::_save_pos(bool &preserve_buffer) {
+ 		off_t new_offset;
+ 		auto seek_offset = (off_t(__offset) - off_t(__io_offset));
+ 		if (int e = io_seek(seek_offset, SEEK_CUR, &new_offset); e) {
+-			if(e == ESPIPE) {
++			if(e == ESPIPE || e == EBADF) {
+ 				// See the corresponding resynchronization in _write_back().
+ 				_type = stream_type::pipe_like;
+ 				// The descriptor no longer supports restoring the file position.
+@@ -575,7 +575,7 @@ int fd_file::determine_type(stream_type *type) {
+ 	if(!e) {
+ 		*type = stream_type::file_like;
+ 		return 0;
+-	}else if(e == ESPIPE) {
++	}else if(e == ESPIPE || e == EBADF) {
+ 		*type = stream_type::pipe_like;
+ 		return 0;
+ 	}else{
