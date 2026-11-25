@@ -144,7 +144,7 @@ def make_image(
         sys.exit(f"Unknown firmware type: {firmware}")
 
     assert create_image is not None
-    
+
     exec_packages = ["mkimg"]
     if arch == "x86_64" and bootloader == "limine" and firmware == "bios":
         exec_packages.append("limine")
