@@ -16,10 +16,12 @@ local env = {
 }
 
 --- Define a target package with the shared lunar toolchain environment.
---- @param pkg table
+--- @param pkg { name: string, version: string, revision: number, source: SourceRef?, dependencies?: Dependency[], runtime_dependencies?: PackageRef[], env?: table<string, string | number>, configure?: string, build?: string, install: string }
 --- @return PackageRef
 function LunarPackage(pkg)
     pkg.env = table.merge(env, pkg.env or {})
+    pkg.dependencies = pkg.dependencies or {}
+    pkg.runtime_dependencies = pkg.runtime_dependencies or {}
     return Package(pkg)
 end
 
