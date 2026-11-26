@@ -13,6 +13,10 @@ x86_64 = [
     "toybox",
     "binutils",
     "mlibc_tests",
+    "mlibc_headers",
+    "cproc",
+    "mcpp",
+    "qbe",
 ]
 
 riscv64 = [
@@ -23,4 +27,8 @@ riscv64 = [
     "toybox",
     "binutils",
     "mlibc_tests",
+    "mlibc_headers",
+    "cproc",
+    "mcpp",
+    "qbe",
 ]
