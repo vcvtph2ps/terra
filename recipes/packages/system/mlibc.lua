@@ -38,6 +38,7 @@ local mlibc = Package {
             -Ddefault_library=both \
             -Dbuild_tests=false \
             -Duse_freestnd_hdrs=disabled \
+            -Dlibgcc_dependency=false \
             $SOURCE_DIR
     ]],
     build = [[
