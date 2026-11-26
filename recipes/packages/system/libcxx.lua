@@ -55,11 +55,11 @@ local package = Package {
         -DLLVM_INCLUDE_TESTS=OFF
     ]],
     build = [[
-	        cmake --build ${BUILD_DIR} --parallel "${PARALLELISM}"
-	    ]],
+        cmake --build ${BUILD_DIR} --parallel "${PARALLELISM}"
+    ]],
     install = [[
-	        DESTDIR="${INSTALL_DIR}" cmake --install ${BUILD_DIR}
-	    ]],
+        DESTDIR="${INSTALL_DIR}" cmake --install ${BUILD_DIR}
+    ]],
 }
 
 return package
