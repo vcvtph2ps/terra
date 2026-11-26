@@ -26,7 +26,7 @@ local bash = LunarPackage {
         bash_cv_getcwd_malloc=yes \
         bash_cv_job_control_missing=missing \
         $SOURCE_DIR/configure \
-            --host=x86_64-lunar \
+            --host=$TARGET_ARCH-lunar \
             --prefix=$PREFIX \
             --without-bash-malloc \
             --disable-readline \
