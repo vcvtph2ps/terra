@@ -4,7 +4,7 @@ local ksym = require("recipes.system_tools.ksym")
 
 local kernel_source = Source {
     name = "kernel",
-    base = Git("https://github.com/vcvtph2ps/lunar.git", "b73f9e1b140c58775ec73ed75941c6ba22e7474f"),
+    base = Git("https://github.com/vcvtph2ps/lunar.git", "7139bc87ddcf91da5b81db87f5578c865da9eab6"),
     dependencies = {
         fabricate,
         "git",
