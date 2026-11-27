@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791908719,
-        "narHash": "sha256-OBoYW/asvO+IwtrpOO0K1ndDnKsz6R0H4ZdLoLxsf8o=",
+        "lastModified": 1795748097,
+        "narHash": "sha256-m/aOKsqJadvAVcV9T/Fd1rSy5mYP0XWR9xAhSdc/GAs=",
         "owner": "chariot-build",
         "repo": "chariot",
-        "rev": "11a5a7d3d8329e32c8788e1894a02e65a1bea775",
+        "rev": "edfe2488bdc99ebd4e965321bbd75f53209bb8a4",
         "type": "github"
       },
       "original": {
